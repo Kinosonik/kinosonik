@@ -2,14 +2,20 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Desplega a producció (commit + push)",
+      "label": "Desplega a producció (amb missatge)",
       "type": "shell",
-      "command": "git add . && git commit -m 'Actualització automàtica' && git pull --rebase && git push",
+      "command": "read -p 'Missatge de commit: ' msg && git add . && git commit -m \"$msg\" && git pull --rebase && git push",
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared"
+      }
     }
   ]
 }
