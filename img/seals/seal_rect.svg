@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200">
+  <rect x="5" y="5" width="590" height="190" rx="15" ry="15" stroke="black" stroke-width="8" fill="white"/>
+  <text x="30" y="60" font-family="Arial" font-size="28" font-weight="bold">KINOSONIK RIDERS</text>
+  <text id="estat" x="30" y="120" font-family="Arial" font-size="44" font-weight="bold" fill="#15803d">VALIDAT</text>
+  <text id="detalls" x="30" y="160" font-family="Arial" font-size="20">ID: KR-XXXXX · mm/aaaa</text>
+  <rect id="qr" x="480" y="40" width="100" height="100" stroke="black" stroke-dasharray="5,5" fill="none"/>
+</svg>

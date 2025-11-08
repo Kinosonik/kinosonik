@@ -1,0 +1,9 @@
+{
+    "require": {
+        "aws/aws-sdk-php": "^3.356",
+        "endroid/qr-code": "^5",
+        "setasign/fpdf": "^1.8",
+        "setasign/fpdi": "^2.6",
+        "phpmailer/phpmailer": "^6"
+    }
+}

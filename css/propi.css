@@ -1,0 +1,527 @@
+/* ────────────────────────────────
+   ESPAIS GENERALS / NAVBAR 
+──────────────────────────────── */
+:root{
+  --bs-body-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text","SF Pro Display","Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  --bs-secondary-color: #a1a1a6; /* text secundari coherent */
+  --nav-offset: 68px;             /* alçada efectiva sota el navbar */
+  --ks-accent: #0d6efd;           /* primari Bootstrap */
+  --ks-text: #bfbfbf;
+  --ks-text-strong: #fff;
+  --ks-border: rgba(255,255,255,.08);
+  --ks-veil: rgba(13,110,253,.10);
+  --ks-dark: rgb(107, 107, 107);
+  --ks-muted:#a1a1a6;
+  --ks-muted-strong:#e0e0e0;
+  --anchor-offset: 68px;
+}
+
+.ks-logo-riders {
+  height: 1.2em;   /* escala amb el font-size del <h4> */
+  width: auto;
+  flex-shrink: 0;  /* que no es deformi en layouts estrets */
+  display: inline-block;
+}
+
+
+body { padding-top: var(--nav-offset) !important; } /* espai per al navbar fixed-top */
+html, body {
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+html{ scroll-behavior:smooth;  }
+a {text-decoration: none !important;}
+/* ─── Ajustos tipogràfics estil Apple ──────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.1;          /* més tensió vertical */
+  letter-spacing: -0.02em;   /* lleuger ajust d’espai */
+  font-weight: 600;
+  margin-top:.6em; margin-bottom:.35em;
+}
+
+/* IMPORTANT: no tenyir spans globalment */
+p, li, small { color: var(--ks-muted); } 
+.text-secondary { color: var(--ks-muted) !important; }
+strong, b { color: #fff; font-weight: 600; }
+
+/* Compensa el navbar fixed quan saltes a #ancores */
+[id] { scroll-margin-top: var(--anchor-offset); }
+
+/* Si al mòbil el navbar és una mica més baix/alt, ajusta aquí */
+@media (max-width: 576px){
+  :root{ --nav-offset: 64px; }
+}
+
+.bg-kinosonik { background-color: #3b3b3b !important; }
+.bg-visualitza { background-color: #38383836 !important; }
+
+.hero-logo {
+  max-width: min(650px, 80vw);   /* límit suau per pantalles grans */
+  width: 90vw;        
+  height: auto;
+}
+
+.text-gradient {
+  background: linear-gradient(90deg, #86b7ff, #e8aaff);
+  background-clip: text;
+  -webkit-background-clip: text; /* per compatibilitat amb Safari/Chrome */
+  color: transparent;
+  -webkit-text-fill-color: transparent; /* també per Safari */
+}
+
+/* Navbar (blur condicional + fallback) */
+@supports (backdrop-filter: blur(6px)) {
+  .navbar { background-color: rgba(60,60,60,.55); backdrop-filter: saturate(130%) blur(6px); }
+}
+.navbar { background-color: rgba(60,60,60,.85); }
+
+.navbar-brand img { height: 40px !important; width: auto; }
+
+/* Links del menú */
+.navbar {font-size: 0.9em;}
+.navbar .nav-link { color: rgba(255,255,255,.7); }
+.navbar .nav-link:hover,
+.navbar .nav-link.active { 
+  color: #fff; 
+}
+
+.navbar .nav-link.btn {
+  border: 0;
+  background: none;
+  padding: .4rem .6rem;
+  color: inherit;
+  text-decoration: none;
+}
+.navbar .nav-link.btn:focus { outline: none; box-shadow: none; }
+.navbar .nav-link.btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* SubMenú Admins NAVBAR */
+.dropdown-kinosonik {
+  background-color: #3b3b3b;
+  transition: background-color .25s ease;
+  color: rgba(145, 145, 145, 0.95);
+}
+.dropdown-item {
+  font-size: 0.8em;
+  padding: .5rem .75rem; 
+}
+
+/* Toggler */
+.navbar .navbar-toggler { border-color: rgba(255,255,255,.25); }
+
+/* Selector d’idioma mini: CA | ES | EN (versió consolidada) */
+.lang-inline { gap: .5rem; }
+.lang-link {
+  color: rgba(255,255,255,.7);
+  text-decoration: none;
+  font-weight: 200;
+  letter-spacing: .02em;
+  transition: color .15s;
+  font-size: .8rem;
+}
+.lang-link:hover { color: rgba(255,255,255,.85); text-decoration: none; }
+.lang-link.active { color: #fff; font-weight: 400; }
+.lang-sep {
+  color: rgba(255,255,255,.35);
+  margin: 0 .25rem;
+  user-select: none;
+}
+@media (max-width: 991.98px) {
+  .lang-inline { justify-content: center; padding: .25rem 0; }
+}
+
+/* Altres menors */
+.bg-tarja { background-color: #313131;}
+.ks-tecnica i {margin-right: 0.6em;}
+.card-header.centered {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    min-height: 48px;
+    padding-top: .5rem; padding-bottom: .5rem;
+  }
+.card-header.centered h6 { margin:0; line-height:1; justify-self:center; text-align:center; }
+
+.card-header.esquerra {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    min-height: 48px;
+    padding-top: .5rem; padding-bottom: .5rem;
+  }
+.card-header.esquerra h6 { margin:0; line-height:1; justify-self:left; text-align:left; }
+
+/* table-responsive */
+.table-responsive th {color: var(--bs-light) !important;}
+.table-responsive tr {min-height: 42px !important; height: 42px;}
+
+/* Breadcrumb bg-kinosonik */
+  .bc-kinosonik a {
+    text-decoration: none;
+  }
+  .bc-kinosonik li {
+    padding-right: 0.7em;
+    color: var(--ks-text);
+  }
+  .bc-kinosonik li:first-child::before {
+    font-family: "bootstrap-icons";   /* col·lecció d’icones */
+    font-style: normal;
+    font-weight: normal;
+    display: inline-block;
+    margin-right: .4rem;
+    line-height: 1;
+    vertical-align: -0.1em;
+    content: "\F425";
+  }
+  .bc-kinosonik li:not(:last-child)::after{
+    font-family: "bootstrap-icons";   /* col·lecció d’icones */
+    font-style: normal;
+    font-weight: normal;
+    display: inline-block;
+    margin-left: .4rem;
+    line-height: 1;
+    vertical-align: -0.16em;
+    content: "\F135"; 
+  }
+  .bc-kinosonik {
+    background:rgba(100, 100, 100, 0.15);
+    border-left:3px solid #0d6efd;
+    padding-left: 15px;
+    padding-top: 1em;
+    padding-bottom: 0.001em;
+  }
+
+/* Majoritariament INDEX.php */
+.ks-code{
+  background: rgba(255,255,255,.04);
+  color: rgba(153, 153, 153, 1);;
+  border-radius:.75rem;
+  border:1px solid rgba(255,255,255,.1);
+  padding:1.5rem;
+  font-family:"SF Mono","Menlo",monospace;
+  font-size:.85rem;
+  white-space:pre-wrap;
+  line-height:1.45;
+}
+ .ks-sala {
+    --pad: clamp(2rem, 4vw, 4rem);
+  }
+  .ks-sala .media-box{
+    position: relative;
+    border-radius: 1rem;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;               /* fa que quedi net a totes mides */
+    background: #111;
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 1.25rem 2.5rem rgba(0,0,0,.35);
+  }
+  .ks-sala .media-box img{
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: saturate(1.05) contrast(1.05);
+    transform: scale(1.02);
+    transition: transform .45s ease;
+  }
+  .ks-sala .media-box::after{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(60% 60% at 70% 30%, rgba(120,86,255,.22), transparent 60%),
+                linear-gradient(180deg, rgba(0,0,0,.15), rgba(0,0,0,.35));
+    mix-blend-mode: screen; pointer-events: none;
+  }
+  .ks-sala .media-box:hover img{ transform: scale(1.04); }
+
+  .ks-sala .lead { color: #a1a1a6; }
+  .ks-sala .bullet i { width:1.25rem; display:inline-block; }
+  .ks-sala .btn-ghost {
+    border: 1px solid rgba(255,255,255,.22);
+    background: rgba(255,255,255,.03);
+  }
+ 
+  #SalaPromotor { padding-bottom: 0 !important; margin-bottom: 0 !important; background-color: #000;}
+  #SalaPromotor .text-secondary {
+  color: #a1a1a6 !important; /* gris Apple suau sobre negre */
+}
+#SalaPromotor .img-edge { display:block; width:100%; margin-bottom:-1px; }
+
+.py-6{padding-top:4rem!important;padding-bottom:4rem!important}
+@media (max-width:576px){.py-6{padding-top:3rem!important;padding-bottom:3rem!important}}
+
+
+/* ────────────────────────────────
+   TAULES I COLUMNES
+──────────────────────────────── */
+thead.table-dark th { position: sticky; top: 0; z-index: 2; background-color: var(--bs-dark); }
+.table-riders { table-layout: auto; overflow-y: visible; } /* una sola definició */
+
+/* Evita columnes massa amples */
+.table-riders th:nth-child(1),
+.table-riders td:nth-child(1), /* ID */
+.table-riders th:nth-child(6),
+.table-riders td:nth-child(6), /* Score */
+.table-riders th:nth-child(7),
+.table-riders td:nth-child(7)  /* Segell */
+{ width: 1%; white-space: nowrap; padding-left:.25rem; padding-right:.25rem; }
+
+/* 8a columna = Redirecció */
+.table-riders th:nth-child(8),
+.table-riders td:nth-child(8) { width: 18rem; }
+
+.redirect-cell { white-space: nowrap; }
+.redirect-cell .redirect-select {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Descripció i Ref. amb ellipsis */
+.table-riders td:nth-child(2),
+.table-riders td:nth-child(3) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Marcat visual per pendents tècnics */
+tr.row-pending-tech > *:first-child { box-shadow: inset 4px 0 0 #dc3545; }
+
+/* ───── FIX columna SEGGELL (admin) ───── */
+.table-riders th:nth-child(7),
+.table-riders td:nth-child(7) {
+  width: auto;
+}
+
+.table-riders .col-seal {
+  width: 6.8rem !important;
+  min-width: 6.8rem;
+  white-space: nowrap;
+  padding-left: .25rem !important;
+  padding-right: .25rem !important;
+  text-align: center;
+}
+
+.table-riders .col-seal .d-inline-flex {
+  flex-wrap: nowrap !important;
+  gap: .25rem !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.table-riders .col-seal .seal-icon { font-size: .95rem; line-height: 1; }
+.table-riders .col-seal .expire-btn { padding: 0 .2rem; line-height: 1; }
+
+.table-riders .col-seal .seal-dd.btn {
+  padding: 0 !important;
+  width: 24px; height: 24px;
+  display: inline-grid; place-items: center;
+  line-height: 1;
+}
+
+.table-riders .col-seal .seal-dd.dropdown-toggle::after {
+  margin-left: 0;
+  transform: scale(.9);
+}
+/* General taules */
+.table thead th {
+  color: var(--ks-text);
+  font-weight: 300;
+  font-size: 0.9em;
+}
+.table td {
+  font-weight: 200;
+  font-size: 0.9em;
+  color: var(--ks-text);
+}
+
+/* Enllaços DINS de taules */
+table a {text-decoration: none;}
+    
+@media (max-width: 1200px) {
+  .table-riders .col-seal { width: 6.3rem !important; min-width: 6.3rem; }
+}
+
+/* ────────────────────────────────
+   BOTONS / ACCIONS
+──────────────────────────────── */
+.btn-group.dropup .btn-sm {
+  padding: 0.1rem 0.4rem;
+  font-size: 0.75rem;
+  min-width: 5.5rem;
+}
+
+/* Botó mini per al dropdown del segell */
+.btn-icon {
+  padding: .125rem .4rem;
+  line-height: 0.5;
+  min-width: auto;
+}
+
+.actions-cell { white-space: nowrap; }
+.actions-cell .btn-group > .btn { flex: 0 0 auto; }
+.actions-cell .btn { flex-shrink: 0; }
+
+@media (max-width: 992px) {
+  .actions-cell .btn { padding-left: .45rem; padding-right: .45rem; }
+}
+@media (max-width: 576px){
+  .actions-cell .btn { padding-left:.35rem; padding-right:.35rem; }
+  .table-riders th:nth-child(8),
+  .table-riders td:nth-child(8){ width: 14rem; }
+}
+
+/* ────────────────────────────────
+   SEGELL (dropdown estil select)
+──────────────────────────────── */
+.seal-dd-btn {
+  background-color: #2b2b2b;
+  color: #ddd;
+  border: 1px solid #444;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: calc(1.5em + .5rem + 2px);
+}
+
+.seal-dd-btn:hover,
+.seal-dd-btn:focus {
+  background-color: #383838;
+  color: #fff;
+  border-color: #555;
+}
+
+.seal-dd-btn .bi { font-size: 1rem; vertical-align: middle; }
+
+/* Petita caret */
+.seal-dd-btn::after {
+  display: inline-block;
+  margin-left: 0.25rem;
+  vertical-align: 0.125em;
+  content: "";
+  border-top: 0.35em solid;
+  border-right: 0.35em solid transparent;
+  border-bottom: 0;
+  border-left: 0.35em solid transparent;
+  opacity: 0.7;
+}
+
+/* ────────────────────────────────
+   PRINT / ACCESSIBILITAT
+──────────────────────────────── */
+@media print {
+  header, .navbar, .help-fab, .btn, .pagination, .form-select { display: none !important; }
+  body { padding-top: 0 !important; }
+}
+
+.chart-scroll { overflow-x: auto; }
+.chart-wrap   { min-width: 640px; }
+.chart-wrap canvas { display: block; }
+
+/* IA status: estil compacte i sticky sota el navbar */
+.ia-status-wrap {
+  position: sticky;
+  top: var(--nav-offset);
+  z-index: 1029;
+  background: rgba(0,0,0,0);
+  padding: .25rem 0;
+  backdrop-filter: saturate(120%) blur(2px);
+}
+.ia-status-wrap .alert,
+.ia-status-wrap .card,
+.ia-status-wrap .badge,
+.ia-status-wrap .list-group,
+.ia-status-wrap .toast { margin: 0; }
+.ia-status-wrap .alert, .ia-status-wrap .card {
+  padding: .35rem .5rem; border-radius: .5rem;
+  font-size: .875rem; line-height: 1.2;
+}
+.ia-status-wrap i.bi { font-size: .95rem; vertical-align: -1px; }
+.ia-status-wrap .container { display: flex; justify-content: flex-end; }
+@media (max-width: 575.98px) {
+  .ia-status-wrap { top: var(--nav-offset); }
+  .ia-status-wrap .alert, .ia-status-wrap .card { font-size: .82rem; }
+}
+
+/* PROBE - desactivat
+html::after{ content:" PROPI.CSS OK 2"; position: fixed; right: 8px; bottom: 8px;
+  padding: 4px 8px; background: #0d6efd; color:#fff; font: 12px/1 system-ui, sans-serif; z-index: 99999; }
+*/
+
+/* Visualitza espai públic riders validats */
+.rider-header .segell { width:48px; height:48px; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; background-color:rgba(16,185,129,.08); }
+.rider-header .meta-small { font-size:.85rem; color:#6c757d; }
+.rider-header .meta-value { font-weight:600; }
+.rider-header .contact-name { font-weight:600; }
+.expired-banner { background:linear-gradient(90deg, rgba(245, 176, 115, 0.395), rgba(255,193,7,.25)); border-left:4px solid #ffc107; }
+.expired-watermark { position:fixed; z-index:0; pointer-events:none; left:50%; top:50%; transform:translate(-50%,-50%) rotate(-20deg); font-size:12vw; font-weight:800; color:rgba(220,53,69,.08); letter-spacing:.1em; user-select:none; }
+
+/* Riders arxiu usuaris llistat */
+.table-riders td.col-seal .seal-stack{ display:inline-flex; align-items:center; gap:.25rem; line-height:1; }
+.table-riders .seal-icon, .table-riders .expire-btn .bi { font-size:1rem; line-height:1; vertical-align:middle; }
+.table-riders .expire-btn{ display:inline-flex; align-items:center; justify-content:center; width:1.25rem; height:1.25rem; padding:0; border:0; background:transparent; }
+.table-riders .expire-btn:focus{ box-shadow:none; }
+.table-riders th.col-id,    .table-riders td.col-id    { width: 56px;  white-space: nowrap; }
+.table-riders th.col-score, .table-riders td.col-score { width: 48px;  white-space: nowrap; text-align: center; }
+.table-riders th.col-seal,  .table-riders td.col-seal  { width: 92px;  white-space: nowrap; text-align: left; }
+.table-riders th:nth-child(4), .table-riders td:nth-child(4) { width: 110px; white-space: nowrap; } /* Data pujada */
+.table-riders th:nth-child(5), .table-riders td:nth-child(5) { width: 110px; white-space: nowrap; } /* Data publicació */
+.table-riders th:last-child,    .table-riders td:last-child    { width: 296px; white-space: nowrap; } /* Accions (+Detall IA) */
+.table-riders .col-seal .d-inline-flex { gap: .25rem; }
+.table-riders .seal-icon { font-size: 1rem; line-height: 1; }
+.table-riders .seal-dd.btn { padding: .125rem .3rem; line-height: 1; min-width: 1.5rem; }
+.table-riders th.col-id, .table-riders td.col-id,
+.table-riders th.col-score, .table-riders td.col-score,
+.table-riders th.col-seal, .table-riders td.col-seal {
+  padding-left: .25rem !important; padding-right: .25rem !important;
+}
+.table-riders .redirect-cell .form-select { max-width: 260px; }
+.table-riders tr.row-validated > th, .table-riders tr.row-validated > tr { border-left: 4px solid #198754 !important; border-radius: 0; }
+.table-riders tfoot .progress { background: rgba(254, 254, 254, 0.1); }
+.table-riders tfoot .progress,
+.table-riders tfoot .progress-bar { border-radius: 2px !important; }
+.table-riders tfoot .progress { height: 12px; background-color: rgba(255,255,255,0.1); }
+.table-riders tfoot .progress-bar { transition: width 0.4s ease; }
+.table-riders .pagination + form select.form-select {
+  font-family: var(--bs-body-font-family) !important;
+  font-size: .875rem !important; line-height: 1.4 !important; font-weight: 400 !important;
+}
+.table-riders .pagination + form select.form-select option,
+.table-riders .pagination + form select.form-select optgroup {
+  font-family: var(--bs-body-font-family) !important;
+  font-size: .875rem !important; line-height: 1.4 !important;
+}
+.table-riders .pagination + form select.form-select { -webkit-appearance: none; appearance: none;
+  background-image: var(--bs-form-select-bg-img); background-repeat: no-repeat; background-position: right .5rem center; padding-right: 1.75rem; }
+@supports (-moz-appearance: none) {
+  .table-riders .pagination + form select.form-select {
+    -moz-appearance: none; appearance: none; background-image: none; padding-right: .75rem;
+  }
+}
+
+/* ---- FOOTER ------ */
+footer { margin-top: 0 !important; }
+.cor-bounce { display: inline-block; color: inherit; transition: transform 0.2s ease, color 0.2s ease; }
+.cor-bounce:hover { color: red; transform: scale(1.2); animation: heart-bounce 0.4s ease; }
+@keyframes heart-bounce {
+  0%{ transform: scale(1); } 30%{ transform: scale(1.3); }
+  50%{ transform: scale(0.9);} 70%{ transform: scale(1.1);} 100%{ transform: scale(1); }
+}
+
+/* ---------- IA STATUS BADGE ------------ */
+.ia-badge {
+  position: fixed; left: 16px; top: calc(var(--nav-offset) + 6px);
+  z-index: 2000; display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: 8px;
+  background-color: rgba(13,110,253,0.18);
+  transition: background-color .25s ease; color: rgba(145, 145, 145, 0.95);
+  backdrop-filter: blur(6px);
+  font-size: 13px; line-height: 1.3; box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  user-select: none;
+}
+.ia-badge i { font-style: normal; font-weight: 400; color: #4dabff; }
+.ia-badge time { opacity: 0.8; font-variant-numeric: tabular-nums; }
+
+/* Detalls d’accessibilitat */
+.bi { color: currentColor; }
+:focus-visible { outline: 2px solid rgba(255,255,255,.35); outline-offset: 2px; }

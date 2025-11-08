@@ -1,0 +1,13 @@
+[2025-10-20T09:38:31+00:00] EXCEPTION[4e39afda]: Call to undefined function r2_download_to_tmp() in /var/www/html/php/tools/ia_check.php:37
+[2025-10-20T09:38:31+00:00] PHP 2: http_response_code(): Cannot set response code - headers already sent (output started at /var/www/html/php/tools/ia_check.php:36) in /var/www/html/php/config.php:263
+[2025-10-20T09:38:31+00:00] PHP 2: Cannot modify header information - headers already sent by (output started at /var/www/html/php/tools/ia_check.php:36) in /var/www/html/php/config.php:264
+[2025-10-20T09:41:46+00:00] EXCEPTION[14766a91]: Call to undefined function r2_download_to_tmp() in /var/www/html/php/tools/ia_check.php:43
+[2025-10-20T10:44:48+00:00] EXCEPTION[3b7d56b8]: Unclosed '{' on line 293 in /var/www/html/php/ia_extract_heuristics.php:567
+[2025-10-20T10:46:37+00:00] [PHP 2] preg_match(): Unknown modifier '\' in /var/www/html/php/ia_extract_heuristics.php:431
+[2025-10-20T11:00:47+00:00] EXCEPTION[60a83f4c]: Call to undefined function sound_tech_metrics() in /var/www/html/php/ia_extract_heuristics.php:209
+[2025-10-20T11:06:18+00:00] EXCEPTION[4a4383ff]: syntax error, unexpected token "if" in /var/www/html/php/ia_extract_heuristics.php:654
+[2025-10-20T11:38:13+00:00] [PHP 2] Undefined array key 1 in /var/www/html/php/ia_extract_heuristics.php:605
+[2025-10-20T11:38:13+00:00] EXCEPTION[3f01ea6d]: trim(): Argument #1 ($string) must be of type string, null given in /var/www/html/php/ia_extract_heuristics.php:605
+[2025-10-20T11:53:58+00:00] [PHP 8192] Function strftime() is deprecated in /var/www/html/php/ia_extract_heuristics.php:870
+[2025-10-20T11:57:54+00:00] [PHP 8192] Function strftime() is deprecated in /var/www/html/php/ia_extract_heuristics.php:897
+[2025-10-20T12:03:51+00:00] [PHP 8192] Function strftime() is deprecated in /var/www/html/php/ia_extract_heuristics.php:955
