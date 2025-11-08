@@ -21,4 +21,9 @@ jobs:
         script: |
           cd /var/www/html
           sudo git pull origin main
+          # Si hi ha canvis PHP, reinicia FPM
+          if git diff --name-only HEAD^ HEAD | grep -q '\.php$'; then
+            echo "Canvis PHP detectats — reiniciant php8.3-fpm"
+            sudo systemctl reload php8.3-fpm
+          fi
           sudo systemctl reload nginx
