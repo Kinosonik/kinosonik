@@ -167,7 +167,7 @@ window.addEventListener('load', function(){
 <section class="bg-secondary bg-opacity-10 py-5 text-center">
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-11 col-md-10 col-lg-8 col-xl-6">
+      <div class="col-12">
         <p class="lead text-light" style="font-weight:200; font-size:2.5em;">
           <?= __('index.banner') ?>
         </p>
@@ -247,55 +247,9 @@ window.addEventListener('load', function(){
           </div>
         </article>
       </div>
-
+      
       <!-- Productor Tècnic PRO -->
-      <div class="col-12">
-        <article class="card h-100 bg-secondary bg-opacity-10 border">
-          <div class="card-body p-lg-5 d-flex flex-column shadow">
-
-            <!-- Fila 1: titular + subtítol (ocupen meitat esquerra; dreta buida per reserva) -->
-            <div class="row g-4">
-              <div class="col-12 col-md-6">
-                <div class="mb-2" style="margin-top: -.25rem;">
-                  <h3 class="fw-bold mb-1 text-body-emphasis" style="font-size: 2.4em;">Productor Tècnic PRO</h3>
-                  <p class="small fw-light text-warning mb-0">Subscripció anual de 120 € (+IVA)</p>
-                </div>
-              </div>
-              <div class="d-none d-md-block col-md-6" aria-hidden="true"></div>
-
-              <!-- Fila 2: paràgraf (esquerra) i llista (dreta) alineats a la mateixa alçada -->
-              <div class="col-12 col-md-6">
-                <p class="small fw-light text-light mb-0">Repositori i negociació de riders per projectes</p>
-                <p class="text-body-secondary mb-0">
-                  Centralitza riders originals, contra-riders i riders finals per escenari i projecte. Històric traçable, IA precheck i packs compartibles.
-                </p>
-              </div>
-              <div class="col-12 col-md-6">
-                <ul class="list-unstyled mb-0 tipus-usuari">
-                  <li class="d-flex align-items-start mb-2"><i class="bi bi-arrow-right text-primary me-2"></i><span>Defineix projectes, escenaris i actuacions.</span></li>
-                  <li class="d-flex align-items-start mb-2"><i class="bi bi-arrow-right text-primary me-2"></i><span>Adjunta riders originals i vincula’ls.</span></li>
-                  <li class="d-flex align-items-start mb-2"><i class="bi bi-arrow-right text-primary me-2"></i><span>Genera i facilita el teu contra-riders.</span></li>
-                  <li class="d-flex align-items-start mb-2"><i class="bi bi-arrow-right text-primary me-2"></i><span>Traça versions i canvis amb línia de temps.</span></li>
-                  <li class="d-flex align-items-start mb-2"><i class="bi bi-arrow-right text-primary me-2"></i><span>IA precheck automàtic per riders sense segell.</span></li>
-                  <li class="d-flex align-items-start mb-2"><i class="bi bi-arrow-right text-primary me-2"></i><span>Pensat per sales, festivals, concerts amb diferents artistes.</span></li>
-                  <li class="d-flex align-items-start"><i class="bi bi-arrow-right text-primary me-2"></i><span>Comparteix pack final per escenari o producció.</span></li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Accions en una sola línia -->
-            <div class="pt-4 d-flex justify-content-center align-items-center gap-5 flex-wrap">
-              <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#registre_usuaris">
-                <?= __('index.comenca') ?>
-              </button>
-              <a href="#ProductorTecnic" class="link-primary text-decoration-none d-inline-flex align-items-center py-2">
-                <?= __('index.saber.mes') ?>&nbsp;<i class="bi bi-arrow-down ms-1"></i>
-              </a>
-            </div>
-
-          </div>
-        </article>
-      </div>
+      <!-- /to_replace/index_produccio_1.php -->
 
     </div>
   </div>
@@ -397,117 +351,7 @@ Add contacts, complete the Input List and incorporate a stage plan...</code></pr
 <!-- FI -> SABER-NE MÉS TÈCNICS -->
 
 <!-- PRODUCTOR TÈCNIC PRO — Saber-ne més -->
-<style>
-/* HERO Productor Tècnic PRO */
-.pro-hero { 
-  position: relative;
-  min-height: 420px;
-}
-@media (min-width: 768px) {
-  .pro-hero { min-height: 560px; }
-}
-.pro-hero img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-}
-
-/* Ombra per llegibilitat (sota el text) */
-.pro-hero-shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,.25) 50%, rgba(0,0,0,.6));
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* Text a dalt, centrat horitzontal */
-.pro-hero-copy{
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;   /* enganxat a dalt */
-  align-items: center;           /* centrat horitzontal */
-  text-align: center;
-  padding: clamp(16px, 6vh, 64px) 1rem 2rem;
-  z-index: 2;                    /* per sobre de l'ombra */
-}
-
-/* Amplada i color del text (força blanc per sobre de .text-black si cal) */
-.pro-hero-copy h2,
-.pro-hero-copy p {
-  max-width: 900px;
-  width: 92%;
-  color: #fff !important;
-  margin-bottom: .5rem;
-}
-.pro-hero-copy p { margin-bottom: 0; }
-
-
-</style>
-
-<section id="ProductorTecnic" class="container-fluid bg-black text-body py-6 pb-0 mb-0" aria-labelledby="proTitle">
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-10 col-xl-9">
-        <!-- Hero imatge amb text dins TÍTOL + PARÀGRAF -->
-        <figure class="pro-hero position-relative rounded-4 overflow-hidden">
-          <img
-            src="/img/section/fons_pro.jpg"
-            class="w-100 d-block"
-            alt="Vista del flux de riders per a productor tècnic"
-            loading="lazy"
-          />
-          <!-- ENFOSQUIMENT IMATGE -->
-          <div class="pro-hero-shade"></div>
-          <figcaption class="pro-hero-copy text-white text-center px-3 px-md-4">
-            <h2 id="proTitle" class="display-4 fw-bold lh-1 mb-3 text-gradient">Productor Tècnic PRO</h2>
-            <p class="lead mb-0">
-              Centralitza els riders originals, crea contra-riders per escenari i tanca riders finals amb traçabilitat completa.
-              IA precheck automàtic per riders sense segell i packs compartibles per escenari o producció.
-            </p>
-          </figcaption>
-        </figure>
-
-        <!-- 3 punts clau -->
-        <!-- PUNT 1 -->
-        <div class="row text-center g-4">
-          <div class="col-12 col-md-4">
-            <p class="h3 fw-bold mb-1">Recopila riders</p>
-            <p class="text-secondary mb-0">Crea un festival amb diferents escenaris i dates, i associa-hi els riders de cada actuació. Obté informació
-              tècnica vàlida amb la IA.
-            </p>
-          </div>
-          <!-- PUNT 2 -->
-          <div class="col-12 col-md-4">
-            <p class="h3 fw-bold mb-1">Contra-rider</p>
-            <p class="text-secondary mb-0">Crea i publica el teu contra-rider, fes un seguiment
-              exhaustiu amb historial a temps real amb els riders de cada actuació i escenari. Tot sempre sota control
-              i amb integració absoluta amb Kinosonik Riders.
-            </p>
-          </div>
-          <!-- PUNT 3 -->
-          <div class="col-12 col-md-4">
-            <p class="h3 fw-bold mb-1">Packs finals</p>
-            <p class="text-secondary mb-0">Signa i verifica la recepció i comprensió del contra-rider final. Publica i facilita
-              tota la informació en packs per festival, escenaris o actuacions; amb control d'accés integrat.
-            </p>
-          </div>
-        </div>
-
-        <!-- CTA (mateixa línia) -->
-        <div class="d-flex justify-content-center gap-3 mt-5">
-          <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#registre_usuaris">
-            <?= __('index.comenca') ?>
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</section>
+<!-- To replace a /to_replace/index_produccio_2.php -->
 
 <!-- SALA / PROMOTOR — Títol, text i imatge -->
 

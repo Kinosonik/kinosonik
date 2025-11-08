@@ -90,7 +90,7 @@ $success = $qs_success ?? '';
               <option value="" selected disabled><?= __('register.select_option') ?></option>
               <option value="tecnic"><?= __('register.type_tecnic') ?></option>
               <option value="sala"><?= __('register.type_sala') ?></option>
-              <option value="productor"><?= __('register.type_productor') ?></option>
+              <!--<option value="productor"><?= __('register.type_productor') ?></option>--> 
               <!--<option value="banda"><?= __('register.type_banda') ?></option>-->
             </select>
             <div class="invalid-feedback"><?= __('register.must_select') ?></div>
