@@ -21,4 +21,4 @@ jobs:
           script: |
             cd /var/www/html
             git pull origin main
-            systemctl reload nginx
+            sudo systemctl reload nginx
