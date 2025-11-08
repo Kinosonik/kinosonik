@@ -1,29 +1,24 @@
-name: Deploy to VPS
+name: Desplega a producció (riders)
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout del codi
+        uses: actions/checkout@v4
 
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@v0.1.10
-      with:
-        host: riders.kinosonik.com
-        username: deploy
-        key: ${{ secrets.VPS_SSH_KEY }}
-        script: |
-          cd /var/www/html
-          sudo git pull origin main
-          # Si hi ha canvis PHP, reinicia FPM
-          if git diff --name-only HEAD^ HEAD | grep -q '\.php$'; then
-            echo "Canvis PHP detectats — reiniciant php8.3-fpm"
-            sudo systemctl reload php8.3-fpm
-          fi
-          sudo systemctl reload nginx
+      - name: Desplega via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: riders.kinosonik.com
+          username: deploy
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/html
+            git pull origin main
+            systemctl reload nginx
