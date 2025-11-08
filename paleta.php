@@ -18,7 +18,7 @@ require_once __DIR__ . '/parts/navmenu.php';
     <div class="d-flex justify-content-between align-items-center mb-1">
         <h4 class="border-bottom border-1 border-secondary pb-2 w-100">
         <i class="bi bi-apple"></i>&nbsp;&nbsp;
-        Títol secció // EDITAT DESDE DEV
+        Títol secció // EDITAT DESDE DEV V2-
         </h4>
     </div>
 
