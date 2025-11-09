@@ -169,13 +169,26 @@ strong, b { color: #fff; font-weight: 600; }
   -webkit-text-fill-color: transparent; /* també per Safari */
 }
 
-/* Navbar (blur condicional + fallback) */
-@supports (backdrop-filter: blur(6px)) {
-  .navbar { background-color: rgba(60,60,60,.55); backdrop-filter: saturate(130%) blur(6px); }
+/* Navbar — Liquid Glass suau (sense bord ni ombra) */
+/* Navbar — Liquid Glass més clar */
+.navbar {
+  background-color: rgba(45, 45, 45, 0.55);
+  transition: background-color .3s ease;
 }
-.navbar { background-color: rgba(60,60,60,.85); }
 
-.navbar-brand img { height: 40px !important; width: auto; }
+@supports (backdrop-filter: blur(18px)) {
+  .navbar {
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    background-color: rgba(45, 45, 45, 0.45);
+  }
+}
+
+.navbar-brand img {
+  height: 40px !important;
+  width: auto;
+}
+
 
 /* Links del menú */
 .navbar {font-size: 0.9em;}
