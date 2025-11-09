@@ -117,7 +117,7 @@ window.addEventListener('load', function(){
   <!-- titol modal + missatge -->
   <h1 id="heroTitle" class="display-5 fw-bold text-body-emphasis mt-2 text-gradient"><?= __('index.hero.titol') ?></h1>
   <div class="col-lg-8 mx-auto px-3">
-    <p class="lead mb-4"><?= __('index.hero.p1') ?>DEV.Station</p>
+    <p class="lead mb-4"><?= __('index.hero.p1') ?></p>
     <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
       <button type="button" class="btn btn-primary btn-lg px-4" data-bs-toggle="modal" data-bs-target="#registre_usuaris">
         <?= __('index.comenca') ?>
