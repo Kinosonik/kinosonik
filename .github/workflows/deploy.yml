@@ -22,13 +22,23 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/html || exit 1
+
+            echo "Configurant credencials Git..."
+            git config --global credential.helper store
+            git config --global user.email "ci@kinosonik.com"
+            git config --global user.name "GitHub Actions"
+            git remote set-url origin https://github.com/Kinosonik/kinosonik.git
+
             echo "Pull de Git..."
             git fetch --all
             git reset --hard origin/main
             git clean -fd
-            echo "Permisos..."
+
+            echo "Reajustant permisos..."
             sudo chown -R kinosonik:www-data /var/www/html
+
             echo "Recarregant serveis..."
             sudo systemctl reload php8.3-fpm
             sudo systemctl reload nginx
+
             echo "Desplegament completat $(date)"
