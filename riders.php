@@ -1262,7 +1262,7 @@ function humanBytes(int $b): string {
 <!-- Modal: Caducar rider -->
 <div class="modal fade" id="expireModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow">
+    <div class="modal-content shadow liquid-glass">
       <div class="modal-header bg-danger justify-content-center position-relative">
         <h6 class="modal-title text-center text-uppercase fw-bold">
           <?= h($L['expire.modal.lead'] ?: 'Aquesta acció és irreversible.') ?>
@@ -1326,7 +1326,7 @@ function humanBytes(int $b): string {
 <!-- Modal: Eliminar rider -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow">
+    <div class="modal-content shadow liquid-glass">
       <div class="modal-header bg-danger text-white">
         <h6 class="modal-title mb-0" id="deleteModalLabel">
           <?= h(__('riders.actions.delete') ?: 'Eliminar rider') ?>
@@ -1381,8 +1381,8 @@ function humanBytes(int $b): string {
 <!-- Modal: Info segell -->
 <div class="modal fade" id="sealInfoModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow">
-      <div class="modal-header bg-kinosonik">
+    <div class="modal-content shadow liquid-glass">
+      <div class="modal-header">
         <h6 class="modal-title mb-0">
           <?= h(__('riders.seal.info.title') ?: 'Informació del segell') ?>
         </h6>

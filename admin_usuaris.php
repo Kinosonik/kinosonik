@@ -550,9 +550,9 @@ $sortIcon = function (string $key) use ($sort, $dir) {
 <!-- Modal eliminar usuari -->
 <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <form method="POST" action="<?= h(BASE_PATH) ?>php/admin_delete_user.php" class="modal-content">
+    <form method="POST" action="<?= h(BASE_PATH) ?>php/admin_delete_user.php" class="modal-content liquid-glass-kinosonik">
       <?= csrf_field() ?>
-      <div class="modal-header bg-dark text-white py-2">
+      <div class="modal-header bg-danger text-white py-2">
         <h6 class="modal-title" id="deleteUserModalLabel">Eliminar usuari</h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tanca"></button>
       </div>

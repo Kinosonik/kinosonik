@@ -898,8 +898,8 @@ if ($pending):
 <!-- Modal: Eliminar rider (HARD DELETE) -->
 <div class="modal fade" id="adminDeleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow">
-      <div class="modal-header bg-danger text-white">
+    <div class="modal-content liquid-glass-kinosonik">
+      <div class="modal-header bg-danger border-0 text-white">
         <h6 class="modal-title mb-0"><?= h(__('riders.delete.title') ?: 'Eliminar rider') ?></h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="<?= h(__('common.close') ?: 'Tanca') ?>"></button>
       </div>
@@ -962,8 +962,8 @@ if ($pending):
 <!-- Modal: Caducar rider (admin) -->
 <div class="modal fade" id="adminExpireModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow">
-      <div class="modal-header bg-danger justify-content-center position-relative">
+    <div class="modal-content liquid-glass-kinosonik">
+      <div class="modal-header bg-danger border-0 justify-content-center position-relative">
         <h6 class="modal-title text-center text-uppercase fw-bold">
           <?= h(__('riders.expire.modal.title') ?: 'Caducar rider') ?>
         </h6>

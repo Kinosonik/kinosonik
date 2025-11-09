@@ -15,7 +15,7 @@ $enabled = $uid > 0;
 ?>
 <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackTitle" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content bg-dark text-light border-0">
+    <div class="modal-content liquid-glass-kinosonik text-light">
       <div class="modal-header border-secondary">
         <h5 class="modal-title" id="feedbackTitle"><?= h(__('feedback.title') ?: 'Enviar feedback / informar d’un problema') ?></h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="<?= h(__('common.tanca') ?: 'Tanca') ?>"></button>

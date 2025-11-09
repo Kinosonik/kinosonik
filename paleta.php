@@ -490,7 +490,7 @@ require_once __DIR__ . '/parts/navmenu.php';
 <!-- HTML Modal exampleModal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="modalDeleteEventLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-light border border-danger-subtle">
+        <div class="modal-content liquid-glass-kinosonik border border-danger-subtle">
             <div class="modal-header border-0">
                 <h5 class="modal-title">
                     <i class="bi bi-exclamation-circle me-2 text-danger"></i>Títol modal
@@ -550,7 +550,7 @@ require_once __DIR__ . '/parts/navmenu.php';
 <!-- HTML Modal info -->
 <div class="modal fade" id="exampleInfo" tabindex="-1" aria-labelledby="" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content bg-dark text-light border border-primary-subtle">
+        <div class="modal-content liquid-glass-kinosonik text-light border border-primary-subtle">
             <div class="modal-header border-bottom border-primary-subtle centered">
                 <h5 class="modal-title text-center">
                     <i class="bi bi-plus-circle me-2 text-primary"></i>Títol modal informatiu

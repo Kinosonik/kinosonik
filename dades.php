@@ -275,7 +275,7 @@ $confirmPattern = '^' . preg_quote($confirmWord, '/') . '$';
   <!-- Modal confirmació baixa rol tècnic -->
   <div class="modal fade" id="modalDropTech" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <form class="modal-content needs-validation" method="POST" action="<?= h(BASE_PATH) ?>php/profile_roles.php" novalidate>
+      <form class="modal-content  liquid-glass-kinosonik needs-validation" method="POST" action="<?= h(BASE_PATH) ?>php/profile_roles.php" novalidate>
         <?= csrf_field() ?>
         <input type="hidden" name="return_to" value="<?= h($_SERVER['REQUEST_URI'] ?? (BASE_PATH.'espai.php?seccio=dades')) ?>">
         <input type="hidden" name="role_tecnic" value="0">
@@ -352,9 +352,9 @@ $confirmPattern = '^' . preg_quote($confirmWord, '/') . '$';
 <!-- Modal confirmació eliminació -->
 <div class="modal fade" id="modalDeleteAccount" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <form class="modal-content needs-validation" method="POST" action="<?= h(BASE_PATH) ?>php/delete_account.php" novalidate>
+    <form class="modal-content liquid-glass-kinosonik needs-validation" method="POST" action="<?= h(BASE_PATH) ?>php/delete_account.php" novalidate>
     <?= csrf_field() ?>
-      <div class="modal-header bg-kinosonik">
+      <div class="modal-header bg-danger border-0">
         <h5 class="modal-title"><?= h(t('profile.delete_title')) ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= h(t('btn.cancel')) ?>"></button>
       </div>
@@ -363,7 +363,7 @@ $confirmPattern = '^' . preg_quote($confirmWord, '/') . '$';
         <div class="mb-3">
           <label class="form-label">
             <!-- Si t('profile.delete_type_to_confirm') no accepta placeholders, mostra-ho així: -->
-            <?= h(t('profile.delete_type_to_confirm')) ?>
+            <?= h(sprintf(t('profile.delete_type_to_confirm'), $confirmWord)) ?>
           </label>
           <input type="text"
                  class="form-control"

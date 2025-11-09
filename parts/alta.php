@@ -22,8 +22,8 @@ $success = $qs_success ?? '';
 <div class="modal fade" id="registre_usuaris" data-bs-backdrop="static" data-bs-keyboard="false"
      tabindex="-1" aria-labelledby="registreLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header bg-kinosonik text-white">
+    <div class="modal-content liquid-glass-kinosonik">
+      <div class="modal-header border-0 text-white">
         <h1 class="modal-title fs-5" id="registreLabel"><?= __('register.title') ?></h1>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="<?= __('close') ?>"></button>
       </div>

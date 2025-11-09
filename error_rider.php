@@ -63,7 +63,7 @@ http_response_code($http);
 
 <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-danger" role="alertdialog" aria-modal="true" aria-describedby="errorModalDesc">
+    <div class="modal-content  liquid-glass-kinosonik border-danger" role="alertdialog" aria-modal="true" aria-describedby="errorModalDesc">
       <div class="modal-header bg-danger text-white">
         <h5 class="modal-title fw-bold" id="errorModalLabel"><?= h($title) ?></h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="<?= h(t('btn.close', 'Tanca')) ?>"></button>

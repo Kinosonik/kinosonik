@@ -394,8 +394,8 @@ Add contacts, complete the Input List and incorporate a stage plan...</code></pr
 <!-- MODAL Login -->
 <div class="modal fade" id="login_usuaris" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="loginLabel" aria-hidden="true">
   <div class="modal-dialog modal-sm modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header bg-kinosonik text-white">
+    <div class="modal-content liquid-glass-kinosonik">
+      <div class="modal-header border-0 text-white">
         <h1 class="modal-title fs-5" id="loginLabel"><?= h(t('login.title')) ?></h1>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="<?= h(t('close')) ?>"></button>
       </div>
