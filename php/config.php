@@ -77,7 +77,7 @@ require_once __DIR__ . '/i18n.php';
 if (isset($_GET['lang'])) { set_lang($_GET['lang']); }
 
 /* ---------- Versió web ---------- */
-$GLOBALS['versio_web'] = $GLOBALS['versio_web'] ?? '0.78B01';
+$GLOBALS['versio_web'] = $GLOBALS['versio_web'] ?? '0.79B01';
 
 /* ---------- Sanitització de return ---------- */
 if (!function_exists('sanitize_return_url')) {
