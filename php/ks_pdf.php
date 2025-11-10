@@ -74,3 +74,25 @@ function ks_detect_seal(string $pdfPath): array {
 
   return $seal;
 }
+/**
+ * ks_pdf_to_text — extreu text complet d’un PDF
+ */
+function ks_pdf_to_text(string $pdfPath): string {
+  if (!is_file($pdfPath) || !filesize($pdfPath)) {
+    return '';
+  }
+
+  $tmpTxt = tempnam(sys_get_temp_dir(), 'pdftext_');
+  $cmd = sprintf('pdftotext -q %s %s 2>&1',
+                 escapeshellarg($pdfPath), escapeshellarg($tmpTxt));
+  exec($cmd, $output, $ret);
+  if ($ret !== 0) {
+    error_log("pdftotext error: " . implode("\n", $output));
+    @unlink($tmpTxt);
+    return '';
+  }
+
+  $txt = @file_get_contents($tmpTxt) ?: '';
+  @unlink($tmpTxt);
+  return trim($txt);
+}

@@ -63,6 +63,7 @@ return [
   'index.quinusuari.tecnic.li5' => "Validació professional opcional (120 €+IVA/rider).",
   'index.quinusuari.tecnic.li6' => "Actualitzacions amb traçabilitat (QR, hash, versió).",
   'index.quinusuari.tecnic.li7' => "Suport per correu electrònic.",
+  'index.quinusuari.tecnic.b1' => "Prova la IA gratuïtament",
   'index.quinusuari.sala.titol' => "Sala/Promotor",
   'index.quinusuari.sala.sub' => "Registre gratuït",
   'index.quinusuari.sala.p1' => "Has rebut un rider i no saps si és l’últim o és consistent? El <strong>segell VALIDAT</strong> t’assegura fiabilitat i et porta a la darrera versió.",

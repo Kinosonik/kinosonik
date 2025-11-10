@@ -62,6 +62,7 @@ return [
   'index.quinusuari.tecnic.li5' => "Validación profesional opcional (120 €+IVA/rider).",
   'index.quinusuari.tecnic.li6' => "Actualizaciones con trazabilidad (QR, hash, versión).",
   'index.quinusuari.tecnic.li7' => "Soporte por correo electrónico.",
+  'index.quinusuari.tecnic.b1' => "Prueba la IA gratis",
   'index.quinusuari.sala.titol' => "Sala / Promotor",
   'index.quinusuari.sala.sub' => "Registro gratuito",
   'index.quinusuari.sala.p1' => "¿Has recibido un rider y no sabes si es el último o si es coherente? El <strong>sello VALIDADO</strong> te garantiza fiabilidad y te lleva a la versión más reciente.",

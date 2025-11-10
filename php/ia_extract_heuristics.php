@@ -1894,3 +1894,17 @@ if (PHP_SAPI === 'cli' && basename(__FILE__) === basename($_SERVER['argv'][0] ??
   ]);
   echo json_encode($res, JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE) . PHP_EOL;
 }
+/**
+ * ia_extract_heuristics — façana per la demo i la IA local
+ */
+function ia_extract_heuristics(string $text, array $opts = []): array {
+  // Crida el pipeline complet de heurístiques
+  $res = run_heuristics($text, '', $opts);
+
+  // Normalitza resultat per la demo
+  return [
+    'score' => (int)round($res['score'] ?? 0),
+    'flags' => $res['flags'] ?? [],
+    'label' => $res['label'] ?? 'Rider'
+  ];
+}

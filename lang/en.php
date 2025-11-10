@@ -61,6 +61,7 @@ return [
   'index.quinusuari.tecnic.li5' => "Optional professional validation (€120 + VAT / rider).",
   'index.quinusuari.tecnic.li6' => "Updates with traceability (QR, hash, version).",
   'index.quinusuari.tecnic.li7' => "Email support included.",
+  'index.quinusuari.tecnic.b1' => "Try the AI for free",
   'index.quinusuari.sala.titol' => "Venue / Promoter",
   'index.quinusuari.sala.sub' => "Free registration",
   'index.quinusuari.sala.p1' => "Received a rider and not sure if it's the latest or consistent? The <strong>VALIDATED seal</strong> ensures reliability and brings you to the most recent version.",
