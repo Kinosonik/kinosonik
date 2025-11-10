@@ -106,6 +106,18 @@ return [
             Cuando no estés seguro de tener exactamente el mismo rider: lo sabremos.<br />
             Incluso podrás consultar tu propio historial de visitas. Y todo <strong>gratis</strong>.",
 
+  'index.demo.titol'         => 'Prueba la IA de tu rider, gratis.',
+  'index.demo.subtitol'      => 'Arrastra o selecciona tu rider y obtén una valoración inmediata',
+  'index.demo.label_upload'  => 'Sube tu rider en PDF (máx. 20 MB)',
+  'index.demo.btn_analitza'  => 'Analizar ahora',
+  'index.demo.resultat'      => 'Resultado del análisis',
+  'index.demo.analitzant'    => 'Analizando tu rider...',
+  'index.demo.version' => 'Versión heurística local.<br />Regístrate para acceder al análisis completo con IA.',
+  'index.demo.error'         => 'Error en el análisis',
+  'index.demo.tancar'        => 'Cerrar',
+  'index.demo.ratelimit'     => 'Has hecho demasiadas pruebas. Inténtalo de nuevo en unos minutos.',
+
+
   // Riders que has visto
   'riders.validated' => 'Riders validados',
   'riders.expired' => 'Riders caducados',

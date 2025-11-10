@@ -105,6 +105,18 @@ return [
             Whenever you’re unsure if you have the same version, we’ll detect it.<br />
             You can even review your own access history — and it’s all <strong>free</strong>.",
 
+  'index.demo.titol'         => 'Test the AI for your rider — free.',
+  'index.demo.subtitol'      => 'Drag or select your rider and get an instant score',
+  'index.demo.label_upload'  => 'Upload your rider as PDF (max. 20 MB)',
+  'index.demo.btn_analitza'  => 'Analyze now',
+  'index.demo.resultat'      => 'Analysis result',
+  'index.demo.analitzant'    => 'Analyzing your rider...',
+  'index.demo.version' => 'Local heuristic demo.<br />Sign up to unlock full AI analysis.',
+  'index.demo.error'         => 'Analysis error',
+  'index.demo.tancar'        => 'Close',
+  'index.demo.ratelimit'     => 'You’ve made too many tests. Try again in a few minutes.',
+
+
 
   // Riders you’ve viewed
   'riders.validated' => 'Validated riders',

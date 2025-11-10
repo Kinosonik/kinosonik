@@ -348,39 +348,30 @@ Add contacts, complete the Input List and incorporate a stage plan...</code></pr
     </div>
   </div>
 </section>
-
 <!-- FI -> SABER-NE MÉS TÈCNICS -->
 
 <!-- DEMO IA -->
-
-<!-- parts/demo_ia.php — Bloc demo heurística -->
 <section id="test-ia" class="container-fluid py-6" style="background-color:#181a1c;">
   <div class="container">
-    <h2 class="display-4 fw-bold mb-3 text-gradient text-center">Prova la IA del teu rider, gratuïtament.</h2>
-    <p class="lead text-secondary mb-5 text-center">Arrossega o selecciona el rider i obtén una valoració immediata</p>
+    <h2 class="display-4 fw-bold mb-3 text-gradient text-center"><?= __('index.demo.titol') ?></h2>
+    <p class="lead text-secondary mb-5 text-center"><?= __('index.demo.subtitol') ?></p>
 
     <div class="row justify-content-center">
         <div class="col-8 col-lg-6">
             <div class="card border-1 shadow liquid-glass-kinosonik">
                 <!-- Body card -->
                 <div class="card-body">
-                    <!-- Missatge error -->
-                     <div id="demoError" class="w-100 mb-3 mt-3 small text-danger d-none"
-                        style="background:rgba(255, 7, 7, 0.15);
-                        border-left:3px solid #ff0707ff;
-                        padding:25px 18px;">
-                    </div>
                     <!-- Formulari pujada rider -->
                     <div class="small mt-2">
                         <form id="demoForm" class="row g-3" enctype="multipart/form-data">
                             <div class="col-md-1"></div>     
                             <div class="col-md-10">
-                                <label class="form-label text-secondary" for="nom">Puja el teu rider en PDF (màx. 20 MB)</label>
+                                <label class="form-label text-secondary" for="nom"><?= __('index.demo.label_upload') ?></label>
                                 <input type="file" id="demoFile" name="file" accept="application/pdf" class="form-control mb-3" required>
                             </div>
                             <div class="col-12 text-center">
                                 <button type="submit" id="btnDemo" class="btn btn-primary" disabled>
-                                    <i class="bi bi-robot"></i> Analitza ara
+                                    <i class="bi bi-robot me-1"></i><?= __('index.demo.btn_analitza') ?>
                                 </button>
                             </div>
                         </form>
@@ -395,19 +386,30 @@ Add contacts, complete the Input List and incorporate a stage plan...</code></pr
 <!-- Modal resultat IA -->
 <div class="modal fade" id="demoModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content bg-dark text-light border border-secondary border-opacity-50">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-robot"></i> Resultat de l'anàlisi</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tanca"></button>
+    <div class="modal-content liquid-glass-kinosonik">
+      <div class="modal-header border-0">
+        <h5 class="modal-title"><i class="bi bi-robot me-1"></i><?= __('index.demo.resultat') ?></h5>
       </div>
+      <!-- Missatge error -->
+       <div id="demoError" class="w-100 mb-3 mt-3 small text-danger d-none"
+          style="background:rgba(255, 7, 7, 0.15);
+                border-left:3px solid #ff0707ff;
+                padding:25px 18px;">
+      </div>
+      <!-- Body -->
       <div class="modal-body text-center" id="demoModalBody">
         <div id="demoSpinner">
           <div class="spinner-border text-primary mb-3" role="status"></div>
-          <p class="mb-0 small">Analitzant el teu rider...</p>
+          <p class="mb-0 small"><?= __('index.demo.analitzant') ?></p>
         </div>
       </div>
-      <div class="modal-footer justify-content-center">
-        <a href="signup.php" class="btn btn-outline-primary btn-sm">Crea un compte i coneix Kayro</a>
+      <div class="modal-footer border-0 justify-content-center">
+        <button type="button" id="btnDemoClose" class="btn btn-secondary px-4">
+          <i class="bi  bi-x-circle me-1"></i><?= __('index.demo.tancar') ?>
+        </button>
+        <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#registre_usuaris">
+          <?= __('index.comenca') ?>
+        </button>
       </div>
     </div>
   </div>
@@ -415,30 +417,59 @@ Add contacts, complete the Input List and incorporate a stage plan...</code></pr
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  const trDemo = {
+    version: <?= json_encode(__('index.demo.version')) ?>,
+    error: <?= json_encode(__('index.demo.error')) ?>,
+    close: <?= json_encode(__('index.demo.tancar')) ?>
+  };
+
   const demoFile = document.getElementById('demoFile');
   const btnDemo = document.getElementById('btnDemo');
   const demoForm = document.getElementById('demoForm');
   const demoModal = new bootstrap.Modal(document.getElementById('demoModal'));
   const demoModalBody = document.getElementById('demoModalBody');
   const demoError = document.getElementById('demoError');
+  const btnDemoClose = document.getElementById('btnDemoClose');
 
+  // Activa el botó només si hi ha un PDF vàlid
   demoFile.addEventListener('change', (e) => {
     const file = e.target.files[0];
     btnDemo.disabled = !(file && file.type === 'application/pdf');
   });
 
+  // Enviament del formulari
   demoForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     demoError.classList.add('d-none');
     demoModal.show();
     demoModalBody.innerHTML = document.getElementById('demoSpinner').outerHTML;
 
-    const formData = new FormData();
-    formData.append('file', demoFile.files[0]);
+    const input = document.querySelector('#demoFile');
+    const file = input.files[0];
+    if (!file) return;
+
+    const freshFormData = new FormData();
+    freshFormData.append('file', new File([file], file.name, { type: file.type }));
+    const currentLang = document.documentElement.lang || 'ca';
+    freshFormData.append('lang', currentLang);
 
     try {
-      const res = await fetch('/php/ia_demo.php', { method: 'POST', body: formData });
-      const data = await res.json();
+      const res = await fetch('/php/ia_demo.php?ts=' + crypto.randomUUID(), {
+        method: 'POST',
+        body: freshFormData,
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      });
+
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); }
+      catch { throw new Error('Resposta no vàlida: ' + text.slice(0, 100)); }
+
+      // Si el backend envia error (inclòs rate-limit)
       if (!res.ok || data.error) throw new Error(data.error || 'Error');
 
       const color = data.score > 80 ? 'success' : data.score >= 60 ? 'warning' : 'danger';
@@ -447,20 +478,47 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="progress mb-3" style="height:20px;">
           <div class="progress-bar bg-${color}" style="width:${data.score}%">${data.score}</div>
         </div>
-        <p class="small text-body-secondary">Versió heurística local (sense IA externa)</p>
+        <p class="small text-body-secondary">${trDemo.version}</p>
       `;
     } catch (err) {
-      demoModal.hide();
-      demoError.textContent = 'Error en l\'anàlisi: ' + err.message;
-      demoError.classList.remove('d-none');
+      // Mostra l’error dins el mateix modal
+      demoModalBody.innerHTML = `
+        <div class="alert alert-danger text-start" role="alert">
+          <strong>${trDemo.error}</strong><br>
+          <span class="small">${err.message}</span>
+        </div>
+      `;
+
+      // Botó “Tanca” dins modal d’error
+      const btnErrorClose = document.getElementById('btnErrorClose');
+      if (btnErrorClose) {
+        btnErrorClose.addEventListener('click', () => {
+          demoModal.hide();
+          demoForm.reset();
+          btnDemo.disabled = true;
+          demoModalBody.innerHTML = '';
+        });
+      }
+    } finally {
+      // Reinicia el formulari després de cada intent
+      input.value = '';
+      btnDemo.disabled = true;
     }
+  });
+
+  // Botó “Tancar” del modal principal
+  btnDemoClose.addEventListener('click', () => {
+    demoModal.hide();
+    demoForm.reset();
+    btnDemo.disabled = true;
+    demoModalBody.innerHTML = '';
+    demoError.classList.add('d-none');
+    if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+    if (window.performance && performance.clearResourceTimings) performance.clearResourceTimings();
+    location.reload();
   });
 });
 </script>
-
-
-
-
 
 
 

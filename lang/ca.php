@@ -106,9 +106,18 @@ return [
           Si el document en PDF ha estat modificat: t'ho direm.<br />
           Quan no estigueu segurs si teniu exactament el mateix rider: ho sabreu.<br />
           Fins i tot podràs consultar el teu propi historial de visites. I tot <strong>gratuït</strong>.",
-  
 
-
+  'index.demo.titol'        => 'Prova la IA del teu rider, gratuïtament.',
+  'index.demo.subtitol'     => 'Arrossega o selecciona el rider i obtén una valoració immediata',
+  'index.demo.label_upload' => 'Puja el teu rider en PDF (màx. 20 MB)',
+  'index.demo.btn_analitza' => 'Analitza ara',
+  'index.demo.resultat'     => "Resultat de l'anàlisi",
+  'index.demo.analitzant'   => 'Analitzant el teu rider...',
+  'index.demo.error'        => "Error en l'anàlisi",
+  'index.demo.version'      => "Versió heurística local.<br />Dóna't d'alta i prova la versió completa.",
+  'index.demo.btn_comenca'  => "Dóna't d'alta",
+  'index.demo.tancar'  => 'Tancar',
+  'index.demo.ratelimit'     => 'Has fet massa proves. Torna-ho a intentar d’aquí uns minuts.',
 
   // Riders que has vist
   'riders.validated' => 'Riders validats',
