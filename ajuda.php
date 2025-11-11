@@ -218,7 +218,7 @@ aside.docs-aside{
                 </nav>
             </div>
 
-            <!-- Ajuda: Producció tècnica -->
+            <!-- Ajuda: Producció tècnica 
             <div class="nav-group">
                 <span class="nav-title">
                     <i class="bi bi-gear-wide-connected me-2"></i>
@@ -228,7 +228,7 @@ aside.docs-aside{
                     <a class="nav-link" href="#">Els teus esdeveniments</a>
                 </nav>
             </div>
-
+            -->
             <!-- Ajuda: El visualitzador -->
             <div class="nav-group">
                 <span class="nav-title">

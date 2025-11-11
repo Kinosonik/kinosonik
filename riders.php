@@ -62,35 +62,21 @@ if ($tipusSessio === null || $tipusSessio === '') {
 }
 $isAdmin = (strcasecmp($tipusSessio, 'admin') === 0);
 
-// +// ── IA: Riders d’aquest usuari amb IA pendent (queued/running/processing/pending) ─────────────
+// ── IA: Riders d’aquest usuari amb IA pendent (queued/running/processing/pending) ─────────────
 // Sense CTE: triem l'última execució per rider amb NOT EXISTS (compatible MySQL/MariaDB)
-$iaSql = "
-  SELECT
-    r.ID_Rider, r.Rider_UID, r.Descripcio, r.Nom_Arxiu, r.Referencia,
-    ir.status   AS ia_status,
-    ir.started_at AS ia_started_at
-  FROM ia_runs ir
-  JOIN Riders r ON r.ID_Rider = ir.rider_id
+$iaStmt = $pdo->prepare("
+  SELECT r.ID_Rider, r.Rider_UID, r.Descripcio, r.Nom_Arxiu, r.Referencia,
+       j.status AS ia_status,
+       j.started_at AS ia_started_at
+  FROM Riders r
+  JOIN ia_jobs j ON j.rider_id = r.ID_Rider
   WHERE r.ID_Usuari = :uid
-    /* darrera execució d'aquest rider */
-    AND NOT EXISTS (
-      SELECT 1
-      FROM ia_runs ir2
-      WHERE ir2.rider_id = ir.rider_id
-        AND (
-              ir2.started_at >  ir.started_at
-           OR (ir2.started_at = ir.started_at AND ir2.id > ir.id)
-        )
-    )
-    /* estats d'espera/execució (normalitzats) */
-    AND LOWER(COALESCE(ir.status,'')) IN ('queued','running','pending','processing')
-    /* només riders que no siguin validats ni caducats */
-    AND r.Estat_Segell_lc NOT IN ('validat','caducat')
-  ORDER BY ir.started_at DESC, r.ID_Rider DESC
-";
-$iaStmt = $pdo->prepare($iaSql);
+    AND LOWER(COALESCE(j.status,'')) IN ('queued','running')
+    AND LOWER(COALESCE(r.Estat_Segell,'')) NOT IN ('validat','caducat')
+  ORDER BY j.created_at DESC
+");
 $iaStmt->execute([':uid' => (int)$currentUserId]);
-$iaPending = $iaStmt->fetchAll(PDO::FETCH_ASSOC);
+$iaPending = $iaStmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
 /* ── Mode inspecció admin (?uid=...) ──────────────────────────────────────── */
 $targetUserId = (int)$currentUserId;
@@ -228,144 +214,145 @@ if (empty($_SESSION['csrf'])) {
 }
 ?>
 
-<!-- Avís de riders en cua per IA  -->
-<?php if (!empty($iaPending)): ?>
-  <div class="container mt-3 mb-3">
-    <div class="alert alert-info border-0 shadow-sm">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="me-3">
-          <strong><?= h(__('riders.ia_pending.title') ?: 'Validacions d’IA en curs') ?></strong><br>
-          <span class="small text-body-secondary">
-            <?= sprintf(__('riders.ia_pending.hint') ?: 'Tens %d rider(s) a la cua o en execució. Pots continuar navegant; t’avisarem quan acabi.', count($iaPending)) ?>
-          </span>
-        </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="<?= h(__('common.close') ?: 'Tanca') ?>"></button>
-      </div>
-      <ul class="list-group list-group-flush mt-2">
-        <?php foreach ($iaPending as $p):
-          $pid   = (int)$p['ID_Rider'];
-          $puid  = (string)$p['Rider_UID'];
-          $pdesc = trim((string)($p['Descripcio'] ?: ($p['Nom_Arxiu'] ?: ('RD'.$pid))));
-          $pref  = trim((string)($p['Referencia'] ?? ''));
-          $st    = strtolower((string)$p['ia_status']);
-          $pdt   = $p['ia_started_at'] ?? null;
-          $pdtS  = $pdt && $pdt !== '0000-00-00 00:00:00' ? dt_eu($pdt) : '—';
-
-          $badge = $st === 'running'
-            ? '<span class="badge text-bg-warning">'.h(__('riders.ia_pending.running') ?: 'Executant').'</span>'
-            : '<span class="badge text-bg-secondary">'.h(__('riders.ia_pending.queued') ?: 'A la cua').'</span>';
-        ?>
-          <li class="list-group-item small d-flex align-items-center gap-2">
-            <span class="text-secondary">#<?= h((string)$pid) ?></span>
-            <span class="me-1"><?= h($pdesc) ?></span>
-            <?php if ($pref !== ''): ?>
-              <span class="text-secondary">(<?= h($pref) ?>)</span>
-            <?php endif; ?>
-            <span class="ms-auto d-flex align-items-center gap-3">
-              <?= $badge ?>
-              <span class="text-secondary"><i class="bi bi-clock"></i> <?= h($pdtS) ?></span>
-              <a class="btn btn-outline-primary btn-sm" href="<?= h(BASE_PATH.'visualitza.php?ref='.rawurlencode($puid)) ?>">
-                <?= h(__('riders.actions.view_card') ?: 'Obrir fitxa') ?>
-              </a>
+<div class="container mb-3">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <!-- Avís de riders en cua per IA -->
+      <?php if (!empty($iaPending)): ?>
+      <div class="alert alert-secondary border-1 border-warning-subtle shadow bg-warning-subtle">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="me-3">
+            <strong class="text-warning"><?= h(__('riders.ia_pending.title') ?: 'Validacions d’IA en curs') ?></strong><br>
+            <span class="small text-body-secondary">
+              <?= sprintf(__('riders.ia_pending.hint') ?: 'Tens %d rider(s) a la cua o en execució. Pots continuar navegant; t’avisarem quan acabi.', count($iaPending)) ?>
             </span>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    </div>
-  </div>
-<?php endif; ?>
-
-<!-- Formulari de pujar riders nous -->
-<?php if ($canUploadHere): ?>
-<div class="container mb-1 w-75">
-  <div class="card border-1 shadow-sm">
-    <div class="card-header bg-kinosonik d-flex align-items-center justify-content-between">
-      <h6 class="mb-0"><?= h(__('riders.upload.title')) /* Pujar nou rider (PDF) */ ?></h6>
-      <button type="button"
-              class="btn-close"
-              aria-label="<?= h(__('common.close') ?: 'Tanca') ?>"
-              onclick="this.closest('.card')?.remove();">
-      </button>
-    </div>
-    <?php if ($flash = (function_exists('flash_get') ? flash_get() : null)):
-      $type = $flash['type'] ?? 'info'; // 'success' | 'error'
-      $key  = (string)($flash['key'] ?? '');
-      $dict = ($type === 'success')
-        ? ($messages['success'] ?? [])
-        : ($messages['error']   ?? []);
-      $msg = (string)($dict[$key] ?? ($dict['default'] ?? ''));
-      if ($msg === '') { $msg = ($type === 'success') ? __('common.ok') : __('common.error'); }
-      $alertClass = ($type === 'success') ? 'alert-success' : 'alert-danger';
-    ?>
-      <div class="container my-2">
-        <div class="alert <?= $alertClass ?> alert-dismissible fade show shadow-sm auto-dismiss-alert" role="alert">
-          <?= h($msg) ?>
+          </div>
           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="<?= h(__('common.close') ?: 'Tanca') ?>"></button>
         </div>
-      </div>
-      <script>
-        setTimeout(() => {
-          const el = document.querySelector('.auto-dismiss-alert');
-          if (el) bootstrap.Alert.getOrCreateInstance(el).close();
-        }, 3000);
-      </script>
-    <?php endif; ?>
-    
-      <div class="card-body container">
-        <form method="post" action="<?= h(BASE_PATH) ?>php/upload_rider.php" enctype="multipart/form-data" novalidate>
-          <?= csrf_field() ?>
-          <!-- Límits client-side (10 MB) -->
-          <input type="hidden" name="MAX_FILE_SIZE" value="10485760">
-          <div class="row justify-content-md-center mb-2">
-            <div class="col-8">
-              <label class="form-label small">
-                <?= h(__('riders.upload.desc_label')) ?>
-                <span class="form-text">(<?= h(__('riders.upload.desc_help')) ?>)</span>
-              </label>
-              <input type="text" name="descripcio" class="form-control form-control-sm" required>
-            </div>
-            <div class="col-4">
-              <label class="form-label small">
-                <?= h(__('riders.upload.ref_label')) ?>
-                <span class="form-text">(<?= h(__('riders.upload.ref_help')) ?>)</span>
-              </label>
-              <input type="text" name="referencia" class="form-control form-control-sm">
-            </div>
-          </div>
-          <div class="row mb-2">
-            <div class="col-md-8">
-            <label class="form-label small">
-              <?= h(__('riders.upload.pdf_label')) ?>
-              <span class="form-text">
-                <?= h(__('riders.upload.pdf_help')) ?>
-              </span>
-            </label>
-            <input type="file" id="rider_pdf" name="rider_pdf" accept="application/pdf,.pdf" class="form-control form-control-sm" required>
-            <div id="rider_pdf_error" class="text-danger small mt-1" style="display:none;"></div>
-            </div>
-            <!-- Botó de pujar rider -->
-            <div class="col-md-4 d-flex align-items-end justify-content-end gap-2">
-              <button id="uploadBtn" type="submit" class="btn btn-primary btn-sm">
-                <i class="bi bi-cloud-upload me-1"></i>
-                <?= h(__('riders.upload.submit')) ?>
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <?php elseif ($isAdmin && !$isOwn): ?>
-  <div class="container mb-3" style="max-width: 900px;">
-    <div class="alert alert-secondary py-2 small mb-0">
-      <?= h($L['admin_inspecting']) ?>:
-      <strong><?= h($targetEmail ?: ('ID '.$targetUserId)) ?></strong> (admin).
-    </div>
-  </div>
-  <?php endif; ?>
+        <ul class="list-group list-group-flush mt-2">
+          <?php foreach ($iaPending as $p):
+            $pid   = (int)$p['ID_Rider'];
+            $puid  = (string)$p['Rider_UID'];
+            $pdesc = trim((string)($p['Descripcio'] ?: ($p['Nom_Arxiu'] ?: ('RD'.$pid))));
+            $pref  = trim((string)($p['Referencia'] ?? ''));
+            $st    = strtolower((string)$p['ia_status']);
+            $pdt   = $p['ia_started_at'] ?? null;
+            $pdtS  = $pdt && $pdt !== '0000-00-00 00:00:00' ? dt_eu($pdt) : '—';
 
-  <!--  Quadre: Riders amb validació humana pendent -->
-  <?php
+            $badge = $st === 'running'
+              ? '<span class="badge text-bg-warning">'.h(__('riders.ia_pending.running') ?: 'Executant').'</span>'
+              : '<span class="badge text-bg-secondary">'.h(__('riders.ia_pending.queued') ?: 'A la cua').'</span>';
+          ?>
+            <li class="list-group-item small d-flex align-items-center gap-2  bg-warning-subtle">
+              <span class="text-secondary"><i class="bi bi-arrow-right me-1 text-warning"></i><?= h((string)$pid) ?></span>
+              <span class="me-1"><?= h($pdesc) ?></span>
+              <?php if ($pref !== ''): ?>
+                <span class="text-secondary">(<?= h($pref) ?>)</span>
+              <?php endif; ?>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
+      <?php endif; ?>
+      <!-- PUJAR RIDER NOU -->
+      <?php if ($canUploadHere): ?>
+      <div class="card border-1 shadow" id="card_riders">
+        <!-- Títol box -->
+        <div class="card-header bg-kinosonik centered">
+          <h6><?= h(__('riders.upload.title')) /* Pujar nou rider (PDF) */ ?></h6>
+          <div class="btn-group ms-2">
+            <a class="btn-close btn-close-white" href="#" data-close-target="#card_riders"></a>
+          </div>
+        </div>
+        <!-- Body card -->
+        <div class="card-body">
+          <!-- Info dins de caixa permanent -->
+          <?php if ($flash = (function_exists('flash_get') ? flash_get() : null)):
+          $type = $flash['type'] ?? 'info'; // 'success' | 'error'
+          $key  = (string)($flash['key'] ?? '');
+          $dict = ($type === 'success')
+            ? ($messages['success'] ?? [])
+            : ($messages['error']   ?? []);
+          $msg = (string)($dict[$key] ?? ($dict['default'] ?? ''));
+          if ($msg === '') { $msg = ($type === 'success') ? __('common.ok') : __('common.error'); }
+          $alertClass = ($type === 'success') ? 'alert-success' : 'alert-danger';
+          ?>
+          <div class="small">
+            <div class="w-100 mb-3 mt-3 small text-warning auto-dismiss-alert"
+              style="background:rgba(255,193,7,0.15);
+              border-left:3px solid #ffc107;
+              padding:25px 18px;"
+              role="alert">
+              <?= h($msg) ?>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="<?= h(__('common.close') ?: 'Tanca') ?>"></button>
+            </div>
+          </div>
+          <script>
+            setTimeout(() => {
+              const el = document.querySelector('.auto-dismiss-alert');
+              if (el) bootstrap.Alert.getOrCreateInstance(el).close();
+            }, 3000);
+          </script>
+          <?php endif; ?>
+          <!-- Fi info -->
+          <div class="small">
+            <form method="post" class="row g-3" action="<?= h(BASE_PATH) ?>php/upload_rider.php" enctype="multipart/form-data" novalidate>
+              <?= csrf_field() ?>
+              <!-- Límits client-side (10 MB) -->
+              <input type="hidden" name="MAX_FILE_SIZE" value="10485760">
+              <div class="col-md-8">
+                <label class="form-label small">
+                  <?= h(__('riders.upload.desc_label')) ?>
+                  <span class="form-text">(<?= h(__('riders.upload.desc_help')) ?>)</span>
+                </label>
+                <input type="text" name="descripcio" class="form-control form-control-sm" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small">
+                  <?= h(__('riders.upload.ref_label')) ?>
+                  <span class="form-text">(<?= h(__('riders.upload.ref_help')) ?>)</span>
+                </label>
+                <input type="text" name="referencia" class="form-control form-control-sm">
+              </div>
+              <div class="col-md-8">
+                <label class="form-label small">
+                  <?= h(__('riders.upload.pdf_label')) ?>
+                  <span class="form-text">
+                    <?= h(__('riders.upload.pdf_help')) ?>
+                  </span>
+                </label>
+                <input type="file" id="rider_pdf" name="rider_pdf" accept="application/pdf,.pdf" class="form-control form-control-sm" required>
+                <div id="rider_pdf_error" class="text-danger small mt-1" style="display:none;"></div>
+                </div>
+                <!-- Botó de pujar rider -->
+                <div class="col-md-4 d-flex align-items-end justify-content-end gap-2">
+                  <button id="uploadBtn" type="submit" class="btn btn-primary btn-sm">
+                    <i class="bi bi-cloud-upload me-1"></i>
+                    <?= h(__('riders.upload.submit')) ?>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <?php elseif ($isAdmin && !$isOwn): ?>
+        <div class="small">
+          <div class="w-100 mb-4 mt-2 small text-light"
+              style="background: var(--ks-veil);
+              border-left:3px solid var(--ks-accent);
+              padding:12px 18px;">
+              <strong class="text-secondary"><?= h($L['admin_inspecting']) ?>: </strong><?= h($targetEmail ?: ('ID '.$targetUserId)) ?> 
+          </div>
+        </div>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- FI PUJAR NOU RIDER -->
+
+<!-- VALIDACIÓ HUMANA PENDENT -->
+<?php
   $stPending = $pdo->prepare("
   SELECT ID_Rider, Rider_UID, Descripcio, Nom_Arxiu,
          Validacio_Manual_Data, Data_Pujada
@@ -384,46 +371,52 @@ if (empty($_SESSION['csrf'])) {
     $txtBoxTitle     = $tx('riders.human_pending.title', 'Validacions humanes pendents');
     $txtClose        = $tx('common.close', 'Tanca');
     $txtRequestedFmt = $tx('riders.actions.human_requested_on', 'Sol·licitada el %s');
-  ?>
-  <div class="container my-4 mb-1 w-75">
-    <div class="card border border-secondary-subtle shadow-sm" id="humanPendingBox">
-      <div class="card-header bg-kinosonik border-0 d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center gap-2">
-            <h6 class="mb-0"><?= h($txtBoxTitle) ?></h6>
-            <span class="badge text-bg-light"><?= (int)count($pending) ?></span>
+?>
+<div class="container mb-3">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="card border-1 border-warning-subtle shadow" id="card_human_pending">
+        <!-- Títol box -->
+        <div class="card-header bg-warning-subtle esquerra text-warning">
+          <h6><?= h($txtBoxTitle) ?>: <?= (int)count($pending) ?></h6>          
+          <div class="btn-group ms-2">
+            <a class="btn-close btn-close-white" href="#" data-close-target="#card_human_pending"></a>
+          </div>
         </div>
-        <button type="button"
-          class="btn-close"
-          aria-label="<?= h($txtClose) ?>"
-          onclick="document.getElementById('humanPendingBox')?.remove();"></button>
-      </div>
-      <div class="card-body p-0">
-        <ul class="list-group list-group-flush small">
-          <?php foreach ($pending as $p):
-            $pid   = (int)$p['ID_Rider'];
-            $pdesc = trim((string)($p['Descripcio'] ?? ''));
-            if ($pdesc === '') $pdesc = (string)($p['Nom_Arxiu'] ?? ('RD'.$pid));
-            // Data: preferim Validacio_Manual_Data; si no n'hi ha, fem fallback a Data_Pujada
-            $dtStr = '—';
-            $raw = trim((string)($p['Validacio_Manual_Data'] ?? ''));
-            if ($raw === '' || $raw === '0000-00-00' || $raw === '0000-00-00 00:00:00') {
-              $raw = trim((string)($p['Data_Pujada'] ?? ''));
-            }
-            $dtStr = $raw !== '' ? dt_eu($raw) : '—';
-          ?>
-          <li class="list-group-item d-flex align-items-center gap-2">
-            <span class="text-secondary">ID: <?= h((string)$pid) ?></span>
-            <span class="fw-semibold"><?= h($pdesc) ?></span>
-            <span class="ms-auto text-muted"><?= h(sprintf($txtRequestedFmt, $dtStr)) ?></span>
-          </li>
-          <?php endforeach; ?>
-        </ul>
+        <!-- Body card -->
+        <div class="card-body">
+          <div class="small">
+            <ul class="list-group list-group-flush">
+            <?php foreach ($pending as $p):
+              $pid   = (int)$p['ID_Rider'];
+              $pdesc = trim((string)($p['Descripcio'] ?? ''));
+              if ($pdesc === '') $pdesc = (string)($p['Nom_Arxiu'] ?? ('RD'.$pid));
+              // Data: preferim Validacio_Manual_Data; si no n'hi ha, fem fallback a Data_Pujada
+              $dtStr = '—';
+              $raw = trim((string)($p['Validacio_Manual_Data'] ?? ''));
+              if ($raw === '' || $raw === '0000-00-00' || $raw === '0000-00-00 00:00:00') {
+                $raw = trim((string)($p['Data_Pujada'] ?? ''));
+              }
+              $dtStr = $raw !== '' ? dt_eu($raw) : '—';
+            ?>
+              <li class="list-group-item d-flex align-items-center gap-2">
+                <span class="text-secondary">ID: <?= h((string)$pid) ?></span>
+                <span class="fw-semibold"><?= h($pdesc) ?></span>
+                <span class="ms-auto text-muted"><?= h(sprintf($txtRequestedFmt, $dtStr)) ?></span>
+              </li>
+            <?php endforeach; ?>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <?php endif; ?>
-  <!-- Formulari FILTRES RIDERS -->
-  <?php
+</div>
+<?php endif; ?>
+<!-- FI VALIDACIÓ HUMANA -->
+
+<!-- FORMULARI FILTRATGE TAULA -->
+<?php
   // Per construir els enllaços “neteja” mantenint alguns paràmetres útils (uid, sort, dir, per_page)
   $cleanQ = $_GET;
   unset(
@@ -441,80 +434,87 @@ if (empty($_SESSION['csrf'])) {
 
   // Si estàs inspeccionant un usuari (admin), manté uid com a hidden
   $hiddenUid = ($isAdmin && !$isOwn) ? (int)$targetUserId : null;
-  ?>
-
-  <div class="container my-4 w-75">
-    <div class="card border-1 shadow-sm">
-      <div class="card-header bg-kinosonik d-flex align-items-center justify-content-between">
-        <h6 class="mb-0">
-          <?= h(__('riders.filters.title') ?: 'Filtrar riders') ?>
-          <span class="fw-lighter small">
-            (<?= h(sprintf(__('riders.filters.total') ?: 'tens %d riders', (int)$totalRows)) ?>)
-          </span>
-        </h6>
-        <button type="button"
-                class="btn-close"
-                aria-label="<?= h(__('common.close') ?: 'Tanca') ?>"
-                onclick="this.closest('.card')?.remove();">
-        </button>
-      </div>
-      <div class="card-body">
-        <form method="get" action="<?= h(rtrim(BASE_PATH,'/').'/espai.php') ?>" class="row gy-3">
-          <input type="hidden" name="seccio" value="riders">
-          <?php if ($hiddenUid !== null): ?>
-            <input type="hidden" name="uid" value="<?= (int)$hiddenUid ?>">
-          <?php endif; ?>
-          <input type="hidden" name="sort"     value="<?= h($sortKey) ?>">
-          <input type="hidden" name="dir"      value="<?= h(strtolower($dir)) ?>">
-          <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
-          <input type="hidden" name="page"     value="1">
-          <!-- Primera fila: ID, Descripció i Referència -->
-          <div class="col-12 col-md-2">
-            <label class="form-label small"><?= h(__('riders.filters.id') ?: 'ID Rider') ?></label>
-            <input type="number" min="1" step="1" name="id" value="<?= h($fId) ?>" class="form-control form-control-sm">
+?>
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="card border-1 shadow">
+        <!-- Títol box -->
+        <div class="card-header bg-kinosonik esquerra" id="filtra_riders">
+          <h6>
+            <?= h(__('riders.filters.title') ?: 'Filtrar riders') ?>
+            <span class="fw-lighter small text-secondary">
+              (<?= h(sprintf(__('riders.filters.total') ?: 'tens %d riders', (int)$totalRows)) ?>)
+            </span>
+          </h6>
+          <div class="btn-group ms-2">
+            <a class="btn-close btn-close-white" href="#" data-close-target="#filtra_riders"></a>
           </div>
-          <div class="col-12 col-md-5">
-            <label class="form-label small"><?= h(__('riders.filters.desc') ?: 'Descripció') ?></label>
-            <input type="text" name="qdesc" value="<?= h($fDesc) ?>" class="form-control form-control-sm">
+        </div>
+        <!-- Body card -->
+        <div class="card-body">
+          <div class="small">
+            <form method="get" action="<?= h(rtrim(BASE_PATH,'/').'/espai.php') ?>" class="row g-3">
+              <input type="hidden" name="seccio" value="riders">
+              <?php if ($hiddenUid !== null): ?>
+                <input type="hidden" name="uid" value="<?= (int)$hiddenUid ?>">
+              <?php endif; ?>
+              <input type="hidden" name="sort"     value="<?= h($sortKey) ?>">
+              <input type="hidden" name="dir"      value="<?= h(strtolower($dir)) ?>">
+              <input type="hidden" name="per_page" value="<?= (int)$perPage ?>">
+              <input type="hidden" name="page"     value="1">
+              <!-- Primera fila: ID, Descripció i Referència -->
+              <div class="col-12 col-md-2">
+                <label class="form-label small"><?= h(__('riders.filters.id') ?: 'ID Rider') ?></label>
+                <input type="number" min="1" step="1" name="id" value="<?= h($fId) ?>" class="form-control form-control-sm">
+              </div>
+              <div class="col-12 col-md-5">
+                <label class="form-label small"><?= h(__('riders.filters.desc') ?: 'Descripció') ?></label>
+                <input type="text" name="qdesc" value="<?= h($fDesc) ?>" class="form-control form-control-sm">
+              </div>
+              <div class="col-12 col-md-5">
+                <label class="form-label small"><?= h(__('riders.filters.ref') ?: 'Referència') ?></label>
+                <input type="text" name="qref" value="<?= h($fRef) ?>" class="form-control form-control-sm">
+              </div>
+              <!-- Segona fila: Estat del segell, Redirecció i Botons -->
+              <div class="col-12 col-md-3">
+                <label class="form-label small">
+                  <?= h(__('riders.filters.seal') ?: 'Estat del segell') ?>
+                </label>
+                <select name="seal" class="form-select form-select-sm">
+                  <option value=""><?= h(__('riders.filters.any') ?: 'Qualsevol') ?></option>
+                  <option value="cap"     <?= $fSeal==='cap'     ? 'selected' : '' ?>><?= h(__('riders.seal.opt_none')    ?: 'Cap') ?></option>
+                  <option value="pendent" <?= $fSeal==='pendent' ? 'selected' : '' ?>><?= h(__('riders.seal.opt_pending') ?: 'Pendent') ?></option>
+                  <option value="validat" <?= $fSeal==='validat' ? 'selected' : '' ?>><?= h(__('riders.seal.opt_valid')   ?: 'Validat') ?></option>
+                  <option value="caducat" <?= $fSeal==='caducat' ? 'selected' : '' ?>><?= h(__('riders.seal.opt_expired') ?: 'Caducat') ?></option>
+                </select>
+              </div>
+              <div class="col-12 col-md-3 d-flex align-items-end">
+                <div class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox" id="redirectWith" name="redirect" value="with"
+                    <?= ($fRedirect === 'with') ? 'checked' : '' ?>>
+                  <label class="form-check-label small" for="redirectWith">
+                    <?= h(__('riders.filters.redirect') ?: 'Redirecció') ?>
+                  </label>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 d-flex justify-content-end align-items-end gap-2">
+                <button class="btn btn-primary btn-sm" type="submit">
+                  <i class="bi bi-search me-1"></i><?= h(__('riders.filters.submit') ?: 'Filtra') ?>
+                </button>
+                <a class="btn btn-secondary btn-sm" href="<?= h($cleanUrl) ?>">
+                  <i class="bi bi-x-circle me-1"></i><?= h(__('riders.filters.clear') ?: 'Neteja') ?>
+                </a>
+              </div>
+            </form>     
           </div>
-          <div class="col-12 col-md-5">
-            <label class="form-label small"><?= h(__('riders.filters.ref') ?: 'Referència') ?></label>
-            <input type="text" name="qref" value="<?= h($fRef) ?>" class="form-control form-control-sm">
-          </div>
-          <!-- Segona fila: Estat del segell, Redirecció i Botons -->
-          <div class="col-12 col-md-3">
-            <label class="form-label small">
-              <?= h(__('riders.filters.seal') ?: 'Estat del segell') ?>
-            </label>
-            <select name="seal" class="form-select form-select-sm">
-              <option value=""><?= h(__('riders.filters.any') ?: 'Qualsevol') ?></option>
-              <option value="cap"     <?= $fSeal==='cap'     ? 'selected' : '' ?>><?= h(__('riders.seal.opt_none')    ?: 'Cap') ?></option>
-              <option value="pendent" <?= $fSeal==='pendent' ? 'selected' : '' ?>><?= h(__('riders.seal.opt_pending') ?: 'Pendent') ?></option>
-              <option value="validat" <?= $fSeal==='validat' ? 'selected' : '' ?>><?= h(__('riders.seal.opt_valid')   ?: 'Validat') ?></option>
-              <option value="caducat" <?= $fSeal==='caducat' ? 'selected' : '' ?>><?= h(__('riders.seal.opt_expired') ?: 'Caducat') ?></option>
-            </select>
-          </div>
-          <div class="col-12 col-md-3 d-flex align-items-end">
-            <div class="form-check form-switch mb-0">
-              <input class="form-check-input" type="checkbox" id="redirectWith" name="redirect" value="with"
-                <?= ($fRedirect === 'with') ? 'checked' : '' ?>>
-              <label class="form-check-label small" for="redirectWith">
-                <?= h(__('riders.filters.redirect') ?: 'Redirecció') ?>
-              </label>
-            </div>
-          </div>
-          <div class="col-12 col-md-6 d-flex justify-content-end align-items-end gap-2">
-            <button class="btn btn-primary btn-sm" type="submit">
-              <i class="bi bi-search me-1"></i><?= h(__('riders.filters.submit') ?: 'Filtra') ?>
-            </button>
-            <a class="btn btn-secondary btn-sm" href="<?= h($cleanUrl) ?>">
-              <i class="bi bi-x-circle me-1"></i><?= h(__('riders.filters.clear') ?: 'Neteja') ?>
-            </a>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>
+</div>
+<!-- FI FILTRATGE TAULA -->
+
   <!--Llistat Riders del targetUserId (amb filtres) ───────────────────────── -->
   <?php
     $sql = "
@@ -1262,7 +1262,7 @@ function humanBytes(int $b): string {
 <!-- Modal: Caducar rider -->
 <div class="modal fade" id="expireModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow liquid-glass">
+    <div class="modal-content shadow liquid-glass-kinosonik">
       <div class="modal-header bg-danger justify-content-center position-relative">
         <h6 class="modal-title text-center text-uppercase fw-bold">
           <?= h($L['expire.modal.lead'] ?: 'Aquesta acció és irreversible.') ?>
@@ -1326,7 +1326,7 @@ function humanBytes(int $b): string {
 <!-- Modal: Eliminar rider -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow liquid-glass">
+    <div class="modal-content shadow liquid-glass-kinosonik">
       <div class="modal-header bg-danger text-white">
         <h6 class="modal-title mb-0" id="deleteModalLabel">
           <?= h(__('riders.actions.delete') ?: 'Eliminar rider') ?>
@@ -1381,7 +1381,7 @@ function humanBytes(int $b): string {
 <!-- Modal: Info segell -->
 <div class="modal fade" id="sealInfoModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow liquid-glass">
+    <div class="modal-content shadow liquid-glass-kinosonik">
       <div class="modal-header">
         <h6 class="modal-title mb-0">
           <?= h(__('riders.seal.info.title') ?: 'Informació del segell') ?>
@@ -1424,13 +1424,24 @@ function humanBytes(int $b): string {
   </div>
 </div>
 
+<!-- TOAST -->
+ <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+  <div id="ksToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+
 <!-- Helper error de xarxa unificat -->
 <script>
   // Mostra un missatge de xarxa consistent i evita molestar si estem marxant de la pàgina
   function _netFail(e) {
     if (window.__leavingPage) return;
     try { console.error(e); } catch (_) {}
-    alert(<?= json_encode($L['net_error']) ?>);
+    showToast(<?= json_encode($L['net_error']) ?>);
   }
 </script>
 
@@ -1503,7 +1514,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const json = await resp.json().catch(() => ({}));
       if (!resp.ok || !json.ok) {
-        alert(<?= json_encode($L['seal_update_error']) ?> + (json?.error ? (': ' + json.error) : ''));
+        showToast(<?= json_encode($L['seal_update_error']) ?> + (json?.error ? (': ' + json.error) : ''));
         return;
       }
 
@@ -1667,7 +1678,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 1200);
     } catch (e) {
       console.error(e);
-      alert(<?= json_encode(__('common.copy_failed') ?: 'No s’ha pogut copiar') ?> + "\n" + absolute);
+      showToast(<?= json_encode(__('common.copy_failed') ?: 'No s’ha pogut copiar') ?> + "\n" + absolute);
     }
   });
 })();
@@ -1726,7 +1737,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const json = await resp.json().catch(()=>({}));
       if (!resp.ok || !json.ok) {
-        alert(<?= json_encode($L['net_error']) ?> + (json.error ? (': ' + json.error) : ''));
+        showToast(<?= json_encode($L['net_error']) ?> + (json.error ? (': ' + json.error) : ''));
         btn.disabled = false;
         btn.innerHTML = oldHtml;
         return;
@@ -1819,7 +1830,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const json = await resp.json().catch(()=>({}));
       if (!resp.ok || !json.ok) {
-        alert(<?= json_encode($L['net_error']) ?> + (json.error ? (': ' + json.error) : ''));
+        showToast(<?= json_encode($L['net_error']) ?> + (json.error ? (': ' + json.error) : ''));
         return;
       }
 
@@ -1926,7 +1937,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!file) return;
     const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
     if (!isPdf) {
-      alert(<?= json_encode(__('riders.upload.only_pdf') ?: 'Cal un PDF.') ?>);
+      showToast(<?= json_encode(__('riders.upload.only_pdf') ?: 'Cal un PDF.') ?>);
       inp.value = '';
     return;
     } 
@@ -1959,7 +1970,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const resp = await fetch('<?= h(BASE_PATH) ?>php/reupload_rider.php', { method: 'POST', body: fd });
       const json = await resp.json().catch(()=>({}));
       if (!resp.ok || !json.ok) {
-        alert((json?.error) || <?= json_encode($L['net_error']) ?>);
+        showToast((json?.error) || <?= json_encode($L['net_error']) ?>);
         return;
       }
 
@@ -2055,7 +2066,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const json = await resp.json().catch(()=>({}));
       if (!resp.ok || !json.ok) {
-        alert(json?.error || <?= json_encode(__('common.error') ?: 'Error') ?>);
+        showToast(json?.error || <?= json_encode(__('common.error') ?: 'Error') ?>);
         return;
       }
 
@@ -2213,7 +2224,7 @@ document.addEventListener('click', async (ev) => {
     });
     const json1 = await resp1.json().catch(() => ({}));
     if (!resp1.ok || !json1.ok) {
-      alert(<?= json_encode(__('common.error') ?: 'Error') ?> + (json1.error ? (': ' + json1.error) : ''));
+      showToast(<?= json_encode(__('common.error') ?: 'Error') ?> + (json1.error ? (': ' + json1.error) : ''));
       btn.disabled = false;
       btn.innerHTML = oldHtml;
       return;
@@ -2271,7 +2282,7 @@ document.addEventListener('click', async (ev) => {
           copyHashBtn.classList.remove('btn-outline-secondary');
           copyHashBtn.classList.add('btn-success');
           setTimeout(()=>{ copyHashBtn.classList.add('btn-outline-secondary'); copyHashBtn.classList.remove('btn-success'); }, 800);
-        } catch (e) { alert('No s\'ha pogut copiar.'); }
+        } catch (e) { showToast('No s\'ha pogut copiar.'); }
       });
     }
 
@@ -2286,7 +2297,7 @@ document.addEventListener('click', async (ev) => {
           copyUrlBtn.classList.remove('btn-outline-secondary');
           copyUrlBtn.classList.add('btn-success');
           setTimeout(()=>{ copyUrlBtn.classList.add('btn-outline-secondary'); copyUrlBtn.classList.remove('btn-success'); }, 800);
-        } catch (e) { alert('No s\'ha pogut copiar.'); }
+        } catch (e) { showToast('No s\'ha pogut copiar.'); }
       });
     }
   });

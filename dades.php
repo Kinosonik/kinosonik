@@ -97,218 +97,243 @@ $confirmWords = ['ca' => 'ELIMINAR', 'es' => 'ELIMINAR', 'en' => 'DELETE'];
 $confirmWord  = $confirmWords[$langCurrent] ?? 'ELIMINAR';
 $confirmPattern = '^' . preg_quote($confirmWord, '/') . '$';
 ?>
-<div class="container my-5" style="max-width: 720px;">
-  <div class="card shadow-sm">
-    <div class="card-body fw-lighter">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h4 class="mb-0"><?= h(t('profile.title')) ?></h4>
-        <span class="badge <?= h($classe) ?> fw-lighter px-3 py-2 text-uppercase bg-kinosonik">
-          <?php
-            $roleLabel = match (strtolower($tipus)) {
-              'tecnic' => t('profile.role.tech'),
-              'sala'   => t('profile.role.venue'),
-              'productor'  => t('profile.role.productor'),
-              'admin'  => t('profile.role.admin'),
-              default  => strtoupper($tipus)
-            };
-            echo h((string)$roleLabel);
-          ?>
-        </span>
-      </div>
-      <small class="text-secondary d-block mb-2">
-        ID: <?= h((string)($usuari['ID_Usuari'] ?? '')) ?> /
-        <?= h(t('profile.id_and_signup_date')) ?>:
-        <?php
-        $dataOriginal = $usuari['Data_Alta_Usuari'] ?? null;
-        try {
-          echo $dataOriginal ? h((new DateTime($dataOriginal))->format('d/m/Y')) : '—';
-        } catch (Throwable $e) { echo '—'; }
-        ?>
-      </small>
+<div class="container my-3">
+  <div class="row justify-content-center mb-5">
+    <div class="col-11 col-md-8 col-lg-6">
       <?php if ($banner): ?>
-        <div class="alert alert-<?= $banner['type']==='success' ? 'success' : 'danger' ?>"><?= h((string)$banner['text']) ?></div>
+      <div class="alert alert-<?= $banner['type']==='success' ? 'success' : 'danger' ?>"><?= h((string)$banner['text']) ?></div>
       <?php endif; ?>
-      <hr>
-      <?php
-      $targetRole = strtolower((string)($usuari['Tipus_Usuari'] ?? ''));
-      $canTogglePublishPhone = ($targetRole !== 'sala') || $sessionIsAdmin;
-      // Si NO es pot mostrar, afegeix un hidden per conservar el valor actual sense ensenyar el switch
-      ?>
-      <!-- Formulari principal (perfil + idioma) -->
-      <form class="needs-validation mt-3" method="post" action="<?= h(BASE_PATH) ?>php/save_profile.php" novalidate>
-        <?= csrf_field() ?>
-        <?php if ($sessionIsAdmin && $targetUserId !== $sessionUserId): ?>
-        <input type="hidden" name="user_id" value="<?= (int)$targetUserId ?>">
-        <?php endif; ?>
-        <input type="hidden" name="return_to" value="<?= h($_SERVER['REQUEST_URI'] ?? (BASE_PATH.'espai.php?seccio=dades')) ?>">
-
-        <!-- Nom i cognoms -->
-        <div class="row mb-3">
-          <div class="col-md-4">
-            <label for="nom" class="form-label"><?= h(t('profile.name')) ?></label>
-            <input type="text" class="form-control" id="nom" name="nom"
-                   value="<?= h($usuari['Nom_Usuari'] ?? '') ?>"
-                   pattern="^[A-Za-zÀ-ÿ' -]{2,}$" required>
-            <div class="invalid-feedback"><?= h(t('validation.name_invalid')) ?></div>
-          </div>
-          <div class="col-md-8">
-            <label for="cognoms" class="form-label"><?= h(t('profile.surnames')) ?></label>
-            <input type="text" class="form-control" id="cognoms" name="cognoms"
-                   value="<?= h($usuari['Cognoms_Usuari'] ?? '') ?>"
-                   pattern="^[A-Za-zÀ-ÿ' -]{2,}$" required>
-            <div class="invalid-feedback"><?= h(t('validation.surnames_invalid')) ?></div>
-          </div>
-        </div>
-
-        <!-- Telèfon + Email -->
-        <div class="row mb-3">
-          <div class="col-md-4">
-            <label for="telefon" class="form-label"><?= h(t('profile.phone')) ?></label>
-            <input type="tel" class="form-control" id="telefon" name="telefon"
-                   value="<?= h($usuari['Telefon_Usuari'] ?? '') ?>"
-                   pattern="^\+[1-9][0-9]{6,14}$" required>
-            <div class="form-text"><?= h(t('profile.phone_format_hint')) ?></div>
-            <div class="invalid-feedback"><?= h(t('validation.phone_invalid')) ?></div>
-          </div>
-          <div class="col-md-8">
-            <label for="email" class="form-label"><?= h(t('profile.email')) ?></label>
-            <input type="email" class="form-control" id="email" name="email"
-                   value="<?= h($usuari['Email_Usuari'] ?? '') ?>" required>
-            <div class="invalid-feedback"><?= h(t('validation.email_invalid')) ?></div>
+      <div class="card shadow">
+        <!-- Títol box -->
+        <div class="card-header bg-kinosonik esquerra border-0">
+          <h4><i class="bi bi-person-circle me-3"></i><?= h(t('profile.title')) ?></h4>
+          <div>
+            <span class="badge <?= h($classe) ?> fw-lighter px-3 py-2 text-uppercase bg-dark">
+            <?php
+              $roleLabel = match (strtolower($tipus)) {
+                'tecnic' => t('profile.role.tech'),
+                'sala'   => t('profile.role.venue'),
+                'productor'  => t('profile.role.productor'),
+                'admin'  => t('profile.role.admin'),
+                default  => strtoupper($tipus)
+              };
+              echo h((string)$roleLabel);
+            ?>
+            </span>
           </div>
         </div>
         
-        <?php if ($canTogglePublishPhone): ?>
-        <!-- Publicar telèfon (switch) -->
-        <div class="row mb-3">
-          <div class="col-md-12 d-flex align-items-end">
-            <input type="hidden" name="publica_telefon" value="0">
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch"
-                id="publica_telefon" name="publica_telefon" value="1"
-                <?= ((int)($usuari['Publica_Telefon'] ?? 1) === 1) ? 'checked' : '' ?>>
-              <label class="form-check-label" for="publica_telefon">
-                <?= h(t('profile.publish_phone.label')) ?>
-              </label>
-              <div class="form-text"><?= h(t('profile.publish_phone.help')) ?></div>
-            </div>
+        <div class="card-body fw-lighter">
+          <div class="small text-secondary">
+            ID: <?= h((string)($usuari['ID_Usuari'] ?? '')) ?> ·
+            <?= h(t('profile.id_and_signup_date')) ?>:
+            <?php
+              $dataOriginal = $usuari['Data_Alta_Usuari'] ?? null;
+              try {
+                echo $dataOriginal ? h((new DateTime($dataOriginal))->format('d/m/Y')) : '—';
+              } catch (Throwable $e) { echo '—'; }
+            ?>
           </div>
-        </div>
-      <?php else: ?>
-        <!-- Ocultem el control per a 'sala' (excepte si l’admin edita) -->
-        <input type="hidden" name="publica_telefon" value="<?= (int)($usuari['Publica_Telefon'] ?? 0) ?>">
-      <?php endif; ?>
-
-        <!-- Nova contrasenya opcional -->
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <label for="password" class="form-label"><?= h(t('profile.new_password_opt')) ?></label>
-            <div class="input-group">
-              <input type="password" class="form-control" id="password" name="password"
-                     pattern="^(?=.*[A-Za-z])(?=.*\d).{8,}$" autocomplete="new-password">
-              <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                <i class="bi bi-eye"></i>
-              </button>
-              <div class="invalid-feedback"><?= h(t('validation.pwd_strength')) ?></div>
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <label for="confirmPassword" class="form-label"><?= h(t('profile.confirm_password')) ?></label>
-            <div class="input-group">
-              <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" autocomplete="new-password">
-              <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
-                <i class="bi bi-eye"></i>
-              </button>
-              <div class="invalid-feedback"><?= h(t('validation.pwd_match')) ?></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Idioma -->
-        <div class="row mb-3">
-          <div class="col-md-4">
-            <label class="form-label small"><?= h(t('settings.language')) ?></label>
-            <div style="max-width: 320px;">
-              <select name="idioma" class="form-select form-select-sm">
-                <option value="ca" <?= $langCurrent==='ca'?'selected':'' ?>><?= h(t('lang.ca')) ?></option>
-                <option value="es" <?= $langCurrent==='es'?'selected':'' ?>><?= h(t('lang.es')) ?></option>
-                <option value="en" <?= $langCurrent==='en'?'selected':'' ?>><?= h(t('lang.en')) ?></option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="d-flex justify-content-center gap-2">
-          <button class="btn btn-primary">
-            <i class="bi-person-gear"></i>
-            <?= h(t('btn.update')) ?>
-          </button>
-        </div>
-      </form>
-      <?php if ($canToggleTechRole): ?>
-
-
-  <!-- Rol addicional: Tècnic (només productors o admin) -->
-<?php $potVeureSwitchTecnic = (ks_is_admin() || ks_is_productor()); ?>
-<?php if ($potVeureSwitchTecnic): ?>
-  <hr class="my-4">
-  <div class="row mb-3">
-    <div class="col-md-12">
-      <label class="form-label d-block mb-2"><strong><?= h(t('profile.role.section_title') ?? 'Activar/Desactivar el rol de tècnic') ?></strong></label>
-      <form id="formRoleTecnic" method="post" action="<?= h(BASE_PATH) ?>php/profile_roles.php" class="d-inline">
-        <?= csrf_field() ?>
-        <input type="hidden" name="return_to" value="<?= h($_SERVER['REQUEST_URI'] ?? (BASE_PATH.'espai.php?seccio=dades')) ?>">
-        <input type="hidden" name="role_tecnic" id="role_tecnic_value" value="<?= ks_is_tecnic() ? '1':'0' ?>">
-        <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" role="switch" id="role_tecnic_sw" <?= ks_is_tecnic()?'checked':'' ?>>
-          <label class="form-check-label" for="role_tecnic_sw">
-            <?= h(t('profile.role.toggle_tecnic_label') ?? 'Permet pujar i gestionar riders com a tècnic, a més del teu rol de productor. Compartiràs espai de disc dur.') ?>
-          </label>
-          <div class="form-text">
-            <?= h(t('profile.role.toggle_tecnic_help') ?? 'En desactivar-lo s’eliminaran tots els teus riders, els seus logs i fitxers del núvol.') ?>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal confirmació baixa rol tècnic -->
-  <div class="modal fade" id="modalDropTech" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <form class="modal-content  liquid-glass-kinosonik needs-validation" method="POST" action="<?= h(BASE_PATH) ?>php/profile_roles.php" novalidate>
-        <?= csrf_field() ?>
-        <input type="hidden" name="return_to" value="<?= h($_SERVER['REQUEST_URI'] ?? (BASE_PATH.'espai.php?seccio=dades')) ?>">
-        <input type="hidden" name="role_tecnic" value="0">
-        <input type="hidden" name="wipe_riders" value="1">
-
-        <div class="modal-header bg-kinosonik">
-          <h5 class="modal-title"><?= h(t('profile.role.drop_tech_title') ?? 'Eliminar el rol de tècnic') ?></h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= h(t('btn.cancel')) ?>"></button>
-        </div>
-        <div class="modal-body">
-          <p class="mb-2">
-            <?= h(t('profile.role.drop_tech_desc') ??
-            'Si confirmes, s’eliminaran tots els teus riders, execucions d’IA, logs i fitxers associats a aquests riders. Aquesta acció és irreversible.') ?>
-          </p>
+          
           <?php
-            $confirmWords = ['ca' => 'ELIMINAR', 'es' => 'ELIMINAR', 'en' => 'DELETE'];
-            $langCurrent = current_lang();
-            $confirmWord  = $confirmWords[$langCurrent] ?? 'ELIMINAR';
-            $confirmPattern = '^' . preg_quote($confirmWord, '/') . '$';
+          $targetRole = strtolower((string)($usuari['Tipus_Usuari'] ?? ''));
+          $canTogglePublishPhone = ($targetRole !== 'sala') || $sessionIsAdmin;
+          // Si NO es pot mostrar, afegeix un hidden per conservar el valor actual sense ensenyar el switch
           ?>
-          <label class="form-label">
-            <?= h(sprintf(t('profile.delete_type_to_confirm') ?? 'Escriu %s per confirmar:', $confirmWord)) ?>
-          </label>
-          <input type="text" class="form-control" name="confirm" required pattern="<?= h($confirmPattern) ?>">
-          <div class="invalid-feedback"><?= h($confirmWord) ?></div>
+          <!-- Formulari principal (perfil + idioma) -->
+          <form class="needs-validation mt-3" method="post" action="<?= h(BASE_PATH) ?>php/save_profile.php" novalidate>
+            <?= csrf_field() ?>
+            <?php if ($sessionIsAdmin && $targetUserId !== $sessionUserId): ?>
+            <input type="hidden" name="user_id" value="<?= (int)$targetUserId ?>">
+            <?php endif; ?>
+            <input type="hidden" name="return_to" value="<?= h($_SERVER['REQUEST_URI'] ?? (BASE_PATH.'espai.php?seccio=dades')) ?>">
+
+            <!-- Nom i cognoms -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label for="nom" class="form-label"><?= h(t('profile.name')) ?></label>
+                <input type="text" class="form-control" id="nom" name="nom"
+                      value="<?= h($usuari['Nom_Usuari'] ?? '') ?>"
+                      pattern="^[A-Za-zÀ-ÿ' -]{2,}$" required>
+                <div class="invalid-feedback"><?= h(t('validation.name_invalid')) ?></div>
+              </div>
+              <div class="col-md-8">
+                <label for="cognoms" class="form-label"><?= h(t('profile.surnames')) ?></label>
+                <input type="text" class="form-control" id="cognoms" name="cognoms"
+                      value="<?= h($usuari['Cognoms_Usuari'] ?? '') ?>"
+                      pattern="^[A-Za-zÀ-ÿ' -]{2,}$" required>
+                <div class="invalid-feedback"><?= h(t('validation.surnames_invalid')) ?></div>
+              </div>
+            </div>
+
+            <!-- Telèfon + Email -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label for="telefon" class="form-label"><?= h(t('profile.phone')) ?></label>
+                <input type="tel" class="form-control" id="telefon" name="telefon"
+                      value="<?= h($usuari['Telefon_Usuari'] ?? '') ?>"
+                      pattern="^\+[1-9][0-9]{6,14}$" required>
+                <div class="form-text"><?= h(t('profile.phone_format_hint')) ?></div>
+                <div class="invalid-feedback"><?= h(t('validation.phone_invalid')) ?></div>
+              </div>
+              <div class="col-md-8">
+                <label for="email" class="form-label"><?= h(t('profile.email')) ?></label>
+                <input type="email" class="form-control" id="email" name="email"
+                      value="<?= h($usuari['Email_Usuari'] ?? '') ?>" required>
+                <div class="invalid-feedback"><?= h(t('validation.email_invalid')) ?></div>
+              </div>
+            </div>
+
+            <!-- Nova contrasenya opcional -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="password" class="form-label"><?= h(t('profile.new_password_opt')) ?></label>
+                <div class="input-group">
+                  <input type="password" class="form-control rounded-end-0" id="password" name="password"
+                        pattern="^(?=.*[A-Za-z])(?=.*\d).{8,}$" autocomplete="new-password">
+                  <button class="btn btn-secondary rounded-end-2" type="button" id="togglePassword">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <div class="invalid-feedback"><?= h(t('validation.pwd_strength')) ?></div>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="confirmPassword" class="form-label"><?= h(t('profile.confirm_password')) ?></label>
+                <div class="input-group">
+                  <input type="password" class="form-control rounded-end-0" id="confirmPassword" name="confirmPassword" autocomplete="new-password">
+                  <button class="btn btn-secondary rounded-end-2" type="button" id="toggleConfirmPassword">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <div class="invalid-feedback"><?= h(t('validation.pwd_match')) ?></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Idioma -->
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label small"><?= h(t('settings.language')) ?></label>
+                <div style="max-width: 320px;">
+                  <select name="idioma" class="form-select form-select-sm">
+                    <option value="ca" <?= $langCurrent==='ca'?'selected':'' ?>><?= h(t('lang.ca')) ?></option>
+                    <option value="es" <?= $langCurrent==='es'?'selected':'' ?>><?= h(t('lang.es')) ?></option>
+                    <option value="en" <?= $langCurrent==='en'?'selected':'' ?>><?= h(t('lang.en')) ?></option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTÓ ENVIAR -->
+            <div class="d-flex justify-content-center gap-2 mb-3">
+              <button class="btn btn-primary">
+                <i class="bi-person-gear"></i>
+                <?= h(t('btn.update')) ?>
+              </button>
+            </div>
+          </form>
+          <?php if ($canTogglePublishPhone || $canToggleTechRole): ?>
+          <hr class="my-4">
+          <?php endif; ?>
+
+          <!-- Publicar telèfon (switch) -->
+          <?php if ($canTogglePublishPhone): ?>
+          <div class="row mb-3">
+            <div class="col-md-12 d-flex align-items-end">
+              <input type="hidden" name="publica_telefon" value="0">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch"
+                  id="publica_telefon" name="publica_telefon" value="1"
+                  <?= ((int)($usuari['Publica_Telefon'] ?? 1) === 1) ? 'checked' : '' ?>>
+                <label class="form-check-label" for="publica_telefon">
+                  <?= h(t('profile.publish_phone.label')) ?>
+                </label>
+                <div class="form-text"><?= h(t('profile.publish_phone.help')) ?></div>
+              </div>
+            </div>
+          </div>
+          <?php else: ?>
+          <!-- Ocultem el control per a 'sala' (excepte si l’admin edita) -->
+          <input type="hidden" name="publica_telefon" value="<?= (int)($usuari['Publica_Telefon'] ?? 0) ?>">
+          <?php endif; ?>
+            
+          <?php if ($canToggleTechRole): ?>
+          <!-- Rol addicional: Tècnic (només productors o admin) -->
+          <?php $potVeureSwitchTecnic = (ks_is_admin() || ks_is_productor()); ?>
+          <?php if ($potVeureSwitchTecnic): ?>
+          <div class="row mb-3">
+            <div class="col-md-12">
+              <form id="formRoleTecnic" method="post" action="<?= h(BASE_PATH) ?>php/profile_roles.php" class="d-inline">
+                <?= csrf_field() ?>
+                <input type="hidden" name="return_to" value="<?= h($_SERVER['REQUEST_URI'] ?? (BASE_PATH.'espai.php?seccio=dades')) ?>">
+                <input type="hidden" name="role_tecnic" id="role_tecnic_value" value="<?= ks_is_tecnic() ? '1':'0' ?>">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" role="switch" id="role_tecnic_sw" <?= ks_is_tecnic()?'checked':'' ?>>
+                  <label class="form-check-label" for="role_tecnic_sw"><?= h(t('profile.role.section_title') ?? 'Activar/Desactivar el rol de tècnic') ?>. 
+                    <?= h(t('profile.role.toggle_tecnic_label') ?? 'Permet pujar i gestionar riders com a tècnic, a més del teu rol de productor. Compartiràs espai de disc dur.') ?>
+                  </label>
+                  <div class="form-text">
+                    <?= h(t('profile.role.toggle_tecnic_help') ?? 'En desactivar-lo s’eliminaran tots els teus riders, els seus logs i fitxers del núvol.') ?>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= h(t('btn.cancel')) ?></button>
-          <button type="submit" class="btn btn-danger"><?= h(t('btn.confirm')) ?></button>
+        <!-- Eliminar compte -->
+        <div class="card-footer bg-kinosonik">
+          <div class="d-flex justify-content-center align-items-center mt-2 mb-3">
+            <strong class="text-danger"><?= h(t('profile.delete_irreversible')) ?></strong>
+          </div>
+          <div class="d-flex justify-content-center align-items-center mb-3">
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDeleteAccount">
+              <i class="bi bi-x-lg me-1"></i>
+              <?= h(t('profile.delete_open')) ?>
+            </button>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   </div>
+</div><!-- Final dades -->
+
+<!-- Modal confirmació baixa rol tècnic -->
+<div class="modal fade" id="modalDropTech" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form class="modal-content  liquid-glass-kinosonik needs-validation" method="POST" action="<?= h(BASE_PATH) ?>php/profile_roles.php" novalidate>
+      <?= csrf_field() ?>
+      <input type="hidden" name="return_to" value="<?= h($_SERVER['REQUEST_URI'] ?? (BASE_PATH.'espai.php?seccio=dades')) ?>">
+      <input type="hidden" name="role_tecnic" value="0">
+      <input type="hidden" name="wipe_riders" value="1">
+
+      <div class="modal-header bg-kinosonik">
+        <h5 class="modal-title"><?= h(t('profile.role.drop_tech_title') ?? 'Eliminar el rol de tècnic') ?></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= h(t('btn.cancel')) ?>"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-2">
+          <?= h(t('profile.role.drop_tech_desc') ??
+          'Si confirmes, s’eliminaran tots els teus riders, execucions d’IA, logs i fitxers associats a aquests riders. Aquesta acció és irreversible.') ?>
+        </p>
+        <?php
+          $confirmWords = ['ca' => 'ELIMINAR', 'es' => 'ELIMINAR', 'en' => 'DELETE'];
+          $langCurrent = current_lang();
+          $confirmWord  = $confirmWords[$langCurrent] ?? 'ELIMINAR';
+          $confirmPattern = $confirmWord;
+        ?>
+        <label class="form-label">
+          <?= h(sprintf(t('profile.delete_type_to_confirm') ?? 'Escriu %s per confirmar:', $confirmWord)) ?>
+        </label>
+        <input type="text" class="form-control" name="confirm" required pattern="<?= h($confirmPattern) ?>">
+        <div class="invalid-feedback"><?= h($confirmWord) ?></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle me-1"></i><?= h(t('btn.cancel')) ?></button>
+        <button type="submit" class="btn btn-danger"><?= h(t('btn.confirm')) ?></button>
+      </div>
+    </form>
+  </div>
+</div>
 
   <script>
     (() => {
@@ -336,19 +361,6 @@ $confirmPattern = '^' . preg_quote($confirmWord, '/') . '$';
   <?php endif; ?>
 <?php endif; ?>
 
-      <hr class="my-4">
-
-      <!-- Eliminar compte -->
-      <div class="d-flex justify-content-center align-items-center">
-          <span class="text-danger small"><?= h(t('profile.delete_irreversible')) ?></span>
-        </div>
-        <div class="d-flex justify-content-center align-items-center mt-3">
-          <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalDeleteAccount">
-            <i class="bi bi-x-lg me-1"></i>
-            <?= h(t('profile.delete_open')) ?>
-          </button>
-      </div>
-
 <!-- Modal confirmació eliminació -->
 <div class="modal fade" id="modalDeleteAccount" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -374,14 +386,10 @@ $confirmPattern = '^' . preg_quote($confirmWord, '/') . '$';
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= h(t('btn.cancel')) ?></button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle me-1"></i><?= h(t('btn.cancel')) ?></button>
         <button type="submit" class="btn btn-danger"><?= h(t('profile.delete_confirm')) ?></button>
       </div>
     </form>
-  </div>
-</div>
-
-    </div>
   </div>
 </div>
 

@@ -264,6 +264,27 @@ strong, b { color: #fff; font-weight: 600; }
   }
 .card-header.esquerra h6 { margin:0; line-height:1; justify-self:left; text-align:left; }
 
+/* Select dins modal Kinosonik */
+.modal .form-select {
+  background-color: rgba(40, 40, 40, 0.9);   /* fons fosc coherent amb el modal */
+  color: #f8f9fa;                             /* text clar */
+  border-color: rgba(255,255,255,0.25);
+}
+
+/* Opcional: estil per quan s’obre o té focus */
+.modal .form-select:focus {
+  background-color: rgba(50, 50, 50, 0.95);
+  color: #fff;
+  border-color: var(--bs-primary);
+  box-shadow: none;
+}
+
+/* Color del text dins les opcions (majoria de navegadors) */
+.modal .form-select option {
+  background-color: #222;
+  color: #eee;
+}
+
 /* table-responsive */
 .table-responsive th {color: var(--bs-light) !important;}
 .table-responsive tr {min-height: 42px !important; height: 42px;}
@@ -353,11 +374,18 @@ strong, b { color: #fff; font-weight: 600; }
   #SalaPromotor .text-secondary {
   color: #a1a1a6 !important; /* gris Apple suau sobre negre */
 }
-#SalaPromotor .img-edge { display:block; width:100%; margin-bottom:-1px; }
+#SalaPromotor .img-edge { display:block; width:75%; margin-bottom:-1px; }
 
 .py-6{padding-top:4rem!important;padding-bottom:4rem!important}
 @media (max-width:576px){.py-6{padding-top:3rem!important;padding-bottom:3rem!important}}
 
+/* ────────────────────────────────
+   LEGAL
+──────────────────────────────── */
+.legal h5 {font-size:1.2em;}
+.container.legal {
+  max-width: 720px;   /* o 680px per més estret */
+}
 
 /* ────────────────────────────────
    TAULES I COLUMNES
@@ -393,8 +421,6 @@ thead.table-dark th { position: sticky; top: 0; z-index: 2; background-color: va
   white-space: nowrap;
 }
 
-/* Marcat visual per pendents tècnics */
-tr.row-pending-tech > *:first-child { box-shadow: inset 4px 0 0 #dc3545; }
 
 /* ───── FIX columna SEGGELL (admin) ───── */
 .table-riders th:nth-child(7),
@@ -589,6 +615,7 @@ html::after{ content:" PROPI.CSS OK 2"; position: fixed; right: 8px; bottom: 8px
 }
 .table-riders .redirect-cell .form-select { max-width: 260px; }
 .table-riders tr.row-validated > th, .table-riders tr.row-validated > tr { border-left: 4px solid #198754 !important; border-radius: 0; }
+.table-riders tr.row-pending-tech > th, .table-riders tr.row-pending-tech > tr { border-left: 4px solid #B19240 !important; border-radius: 0; }
 .table-riders tfoot .progress { background: rgba(254, 254, 254, 0.1); }
 .table-riders tfoot .progress,
 .table-riders tfoot .progress-bar { border-radius: 2px !important; }

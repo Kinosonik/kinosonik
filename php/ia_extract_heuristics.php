@@ -173,6 +173,17 @@ function run_heuristics(string $pdfText, string $pdfPath, ?array $opts = null): 
     ];
   }
 
+    // ── Detecció d’idioma ────────────────────────────────────────────────
+  $lang = detect_lang_heuristic($norm);
+  $supported = ['ca','es','en'];
+  $langSupported = in_array($lang, $supported, true);
+
+  if (!$langSupported) {
+    $langWarning = "Idioma detectat: {$lang} — pot reduir la precisió de l’anàlisi.";
+  } else {
+    $langWarning = null;
+  }
+
   // ── META: dates / versions (serveix per vigència temporal) ─────────────
   // Incloem el nom del fitxer per captar "2024-25", "2025.pdf", etc.
   $docName = mb_strtolower(basename($pdfPath), 'UTF-8');
@@ -536,6 +547,9 @@ function run_heuristics(string $pdfText, string $pdfPath, ?array $opts = null): 
       'rider_confidence' => $rc,
       'ocr_recommended'  => $ocrRecommended,
       'text_chars'       => $len,
+      'lang_detected'  => $lang,
+      'lang_supported' => $langSupported,
+      'lang_warning'   => $langWarning,
     ],
     'suggestion_block'         => $suggestion,     // bloc “ric”
     'suggestion_block_compact' => $suggestBlock,   // bloc compacte (si escau)

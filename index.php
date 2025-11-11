@@ -120,7 +120,7 @@ window.addEventListener('load', function(){
     <p class="lead mb-4"><?= __('index.hero.p1') ?></p>
     <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
       <button type="button" class="btn btn-primary btn-lg px-4" data-bs-toggle="modal" data-bs-target="#registre_usuaris">
-        <?= __('index.comenca') ?>
+        <i class="bi bi-arrow-up-right-square-fill me-2"></i><?= __('index.comenca') ?>
       </button>
     </div>
     <!-- Versió --><p class="small mt-3"><?= __('index.construccio') ?> v<?= h($GLOBALS['versio_web'] ?? '') ?></p>
@@ -132,7 +132,7 @@ window.addEventListener('load', function(){
   <div class="row text-center g-4 justify-content-center">
     <!-- Puja el rider -->
     <div class="col-md-3">
-      <div class="card bg-secondary bg-opacity-10 h-100">
+      <div class="card bg-secondary bg-opacity-10 h-100 shadow">
         <div class="card-body">
           <i class="bi bi-cloud-upload display-6 text-danger mb-3"></i>
           <h5 class="mt-3"><?= __('index.pujarider') ?></h5>
@@ -142,7 +142,7 @@ window.addEventListener('load', function(){
     </div>
     <!-- Anàlisis amb IA -->
     <div class="col-md-3">
-      <div class="card bg-secondary bg-opacity-10 h-100">
+      <div class="card bg-secondary bg-opacity-10 h-100 shadow">
         <div class="card-body">
           <i class="bi bi-robot display-6 text-warning mb-3"></i>
           <h5 class="mt-3"><?= __('index.analisiia') ?></h5>
@@ -152,7 +152,7 @@ window.addEventListener('load', function(){
     </div>
     <!-- Validació i segell -->
     <div class="col-md-3">
-      <div class="card bg-secondary bg-opacity-10 h-100">
+      <div class="card bg-secondary bg-opacity-10 h-100 shadow">
         <div class="card-body">
           <i class="bi bi-shield-check display-6 text-success mb-3"></i>
           <h5 class="mt-3"><?= __('index.validacio') ?></h5>
@@ -167,7 +167,7 @@ window.addEventListener('load', function(){
 <section class="bg-secondary bg-opacity-10 py-5 text-center">
   <div class="container">
     <div class="row justify-content-center">
-      <div class="col-12">
+      <div class="col-9 col-md-8 col-lg-7 mx-auto">
         <p class="lead text-light" style="font-weight:200; font-size:2.5em;">
           <?= __('index.banner') ?>
         </p>
@@ -207,7 +207,7 @@ window.addEventListener('load', function(){
             </ul>
             <div class="mt-auto text-center pt-4">
               <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#registre_usuaris">
-                <?= __('index.comenca') ?>
+                <i class="bi bi-arrow-up-right-square-fill me-2"></i><?= __('index.comenca') ?>
               </button> 
             </div>
             <div class="mt-auto text-center pt-4">
@@ -239,7 +239,7 @@ window.addEventListener('load', function(){
             </ul>
             <div class="mt-auto text-center pt-4">
               <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#registre_usuaris">
-                <?= __('index.alta.gratuita') ?>
+                <i class="bi bi-arrow-up-right-square me-2"></i><?= __('index.alta.gratuita') ?>
               </button>
             </div>
             <div class="mt-auto text-center pt-4">
@@ -257,7 +257,7 @@ window.addEventListener('load', function(){
 </section>
 
 <!-- SABER-NE MÉS TÈCNICS -->
-<section id="ks-js" class="container-fluid py-6" style="background-color:#181a1c;">
+<section id="ks-js" class="container-fluid pt-3" style="background-color:#181a1c;">
   <div class="container">
     <!-- CAPÇALERA -->
     <div class="row align-items-end g-4 mb-5">
@@ -351,14 +351,14 @@ Add contacts, complete the Input List and incorporate a stage plan...</code></pr
 <!-- FI -> SABER-NE MÉS TÈCNICS -->
 
 <!-- DEMO IA -->
-<section id="test-ia" class="container-fluid py-6" style="background-color:#181a1c;">
+<section id="test-ia" class="container-fluid pt-3 pb-5" style="background-color:#181a1c;">
   <div class="container">
     <h2 class="display-4 fw-bold mb-3 text-gradient text-center"><?= __('index.demo.titol') ?></h2>
     <p class="lead text-secondary mb-5 text-center"><?= __('index.demo.subtitol') ?></p>
 
     <div class="row justify-content-center">
         <div class="col-8 col-lg-6">
-            <div class="card border-1 shadow liquid-glass-kinosonik">
+            <div class="card border-1 shadow bg-dark">
                 <!-- Body card -->
                 <div class="card-body">
                     <!-- Formulari pujada rider -->
@@ -408,7 +408,7 @@ Add contacts, complete the Input List and incorporate a stage plan...</code></pr
           <i class="bi  bi-x-circle me-1"></i><?= __('index.demo.tancar') ?>
         </button>
         <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#registre_usuaris">
-          <?= __('index.comenca') ?>
+          <i class="bi bi-arrow-up-right-square-fill me-2"></i><?= __('index.comenca') ?>
         </button>
       </div>
     </div>
@@ -529,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- SALA / PROMOTOR — Títol, text i imatge -->
 
-<section id="SalaPromotor" class="container-fluid bg-black text-white py-6 pb-0 mb-0" aria-labelledby="salaTitle">
+<section id="SalaPromotor" class="container-fluid bg-black text-white py-3 pb-0 mb-0" aria-labelledby="salaTitle">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-lg-10 col-xl-9">
@@ -543,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Botó alta gratuita -->
          <div class="mt-auto text-center pt-4">
               <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal" data-bs-target="#registre_usuaris">
-                <?= __('index.alta.gratuita') ?>
+                <i class="bi bi-arrow-up-right-square me-3"></i><?= __('index.alta.gratuita') ?>
               </button>
             </div>
 

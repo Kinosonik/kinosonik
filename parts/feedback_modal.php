@@ -16,11 +16,10 @@ $enabled = $uid > 0;
 <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackTitle" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content liquid-glass-kinosonik text-light">
-      <div class="modal-header border-secondary">
+      <div class="modal-header border-0">
         <h5 class="modal-title" id="feedbackTitle"><?= h(__('feedback.title') ?: 'Enviar feedback / informar d’un problema') ?></h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="<?= h(__('common.tanca') ?: 'Tanca') ?>"></button>
       </div>
-
       <div class="modal-body">
         <?php if (!$enabled): ?>
           <div class="alert alert-warning">
@@ -33,6 +32,9 @@ $enabled = $uid > 0;
             <div class="col-md-4">
               <label for="fbType" class="form-label"><?= h(__('feedback.type') ?: 'Tipus de missatge') ?></label>
               <select id="fbType" name="type" class="form-select" required>
+                <option value="" disabled selected>
+                  <?= h(__('feedback.select_prompt') ?: 'Escull una opció / Choose an option / Elige una opción') ?>
+                </option>
                 <?php
                 $opts = [
                   'translation_error' => 'Error de traducció',
@@ -68,13 +70,13 @@ $enabled = $uid > 0;
             <?= h(__('feedback.identity_note') ?: 'La identitat (nom, email i UID) s’obté automàticament del teu compte.') ?>
           </span>
         </div>
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-          <?= h(__('common.cancel') ?: 'Cancel·la') ?>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i><?= h(__('common.cancel') ?: 'Cancel·la') ?>
         </button>
         <?php if ($enabled): ?>
         <button id="fbSendBtn" type="button" class="btn btn-primary">
           <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
-          <span><?= h(__('feedback.send') ?: 'Envia') ?></span>
+          <i class="bi bi-send me-1"></i><span><?= h(__('feedback.send') ?: 'Envia') ?></span>
         </button>
         <?php endif; ?>
       </div>

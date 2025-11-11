@@ -122,7 +122,7 @@ $success = $qs_success ?? '';
               <input class="form-check-input" type="checkbox" role="switch" value="1" id="politica" name="politica" required>
               <label class="form-check-label" for="politica">
                 <?= __('register.accept_policy') ?> 
-                <a href="<?= h(BASE_PATH) ?>legal/politica-privacitat.html" target="_blank" rel="noopener"><?= __('register.policy') ?></a>.
+                <a href="<?= h(BASE_PATH) ?>politica_privacitat.php" target="_blank" rel="noopener"><?= __('register.policy') ?></a>.
               </label>
               <div class="invalid-feedback"><?= __('register.must_accept_policy') ?></div>
             </div>

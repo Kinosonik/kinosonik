@@ -179,7 +179,7 @@ require_once __DIR__ . '/parts/navmenu.php';
             </div>
             <div class="row mb-2">
                 <div class="col-md-8">
-                    <label class="form-label small">Descripció 3<span class="form-text">Descripció precisa</span></label>
+                    <label class="form-label small">Descripció 3 <span class="form-text">Descripció precisa</span></label>
                     <input type="file" id="" name="rider_pdf" accept="application/pdf,.pdf" class="form-control form-control-sm" required>
                 </div>
                 <!-- Botó de pujar rider -->
@@ -466,6 +466,41 @@ require_once __DIR__ . '/parts/navmenu.php';
             <i class="bi bi-bell"></i>
             <div class="name text-light text-decoration-none text-center pt-1" style="font-size: 0.6em;">bell</div>
             <div class="name text-muted text-decoration-none text-center pt-1 text-light" style="font-size: 0.6em;">Subsripció a rider</div>
+          </div>
+      </li>
+      <li class="col mb-4">
+          <div class="px-3 py-4 mb-2 bg-body-secondary text-center rounded text-light" style="font-size:1.75em;">
+            <i class="bi bi-send"></i>
+            <div class="name text-light text-decoration-none text-center pt-1" style="font-size: 0.6em;">send</div>
+            <div class="name text-muted text-decoration-none text-center pt-1 text-light" style="font-size: 0.6em;">Enviar</div>
+          </div>
+      </li>
+      <li class="col mb-4">
+          <div class="px-3 py-4 mb-2 bg-body-secondary text-center rounded text-light" style="font-size:1.75em;">
+            <i class="bi bi-arrow-right-square"></i>
+            <div class="name text-light text-decoration-none text-center pt-1" style="font-size: 0.6em;">arrow-right-square</div>
+            <div class="name text-muted text-decoration-none text-center pt-1 text-light" style="font-size: 0.6em;">Log Out</div>
+          </div>
+      </li>
+      <li class="col mb-4">
+          <div class="px-3 py-4 mb-2 bg-body-secondary text-center rounded text-light" style="font-size:1.75em;">
+            <i class="bi bi-arrow-right-square-fill"></i>
+            <div class="name text-light text-decoration-none text-center pt-1" style="font-size: 0.6em;">arrow-right-square-fill</div>
+            <div class="name text-muted text-decoration-none text-center pt-1 text-light" style="font-size: 0.6em;">Log In</div>
+          </div>
+      </li>
+      <li class="col mb-4">
+          <div class="px-3 py-4 mb-2 bg-body-secondary text-center rounded text-light" style="font-size:1.75em;">
+            <i class="bi bi-arrow-up-right-square-fill"></i>
+            <div class="name text-light text-decoration-none text-center pt-1" style="font-size: 0.6em;">arrow-up-right-square-fill</div>
+            <div class="name text-muted text-decoration-none text-center pt-1 text-light" style="font-size: 0.6em;">Subscriure's</div>
+          </div>
+      </li>
+      <li class="col mb-4">
+          <div class="px-3 py-4 mb-2 bg-body-secondary text-center rounded text-light" style="font-size:1.75em;">
+            <i class="bi bi-arrow-up-right-square"></i>
+            <div class="name text-light text-decoration-none text-center pt-1" style="font-size: 0.6em;">arrow-up-right-square</div>
+            <div class="name text-muted text-decoration-none text-center pt-1 text-light" style="font-size: 0.6em;">Alta gratuïta</div>
           </div>
       </li>
     </ul>

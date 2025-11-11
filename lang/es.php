@@ -457,7 +457,7 @@ return [
   'riders.actions.ia_detail' => 'Detalles IA',
 
   'riders.ia_pending.title'   => 'Validaciones de IA en curso',
-  'riders.ia_pending.hint'    => 'Tienes %d rider(s) en cola o en ejecución. Puedes seguir navegando; te avisaremos cuando finalice.',
+  'riders.ia_pending.hint'    => 'Tienes %d rider(s) en cola o en ejecución. Puedes seguir navegando.',
   'riders.ia_pending.queued'  => 'En cola',
   'riders.ia_pending.running' => 'Ejecutando',
 
@@ -577,6 +577,7 @@ return [
 'feedback.thanks' => '¡Gracias! Hemos recibido tu mensaje.',
 'feedback.error_generic' => 'No se ha podido enviar el mensaje.',
 'feedback.identity_note' => 'La identidad (nombre, email y UID) se obtiene automáticamente de tu cuenta.',
+'feedback.select_prompt' => 'Elige una opción',
 
 
   
@@ -627,6 +628,12 @@ return [
   'reset.btn_cancel'          => 'Cancelar',
   'reset.footer'              => '© %Y Kinosonik',
   'reset.client_mismatch'     => 'No coincide',
+  'footer.privacitat'    => 'Privacidad',
+  'footer.cookies'       => 'Galletas',
+
+  'cookies.banner_text' => 'Este sitio utiliza cookies esenciales para su funcionamiento. Puedes leer más en la Política de cookies.',
+  'cookies.more_info'  => 'Más información',
+  'cookies.accept'     => 'Aceptar',
 
   // Análisis IA
   'ia.titol.analitzant'       => 'Análisis del rider con IA',

@@ -324,6 +324,12 @@ return [
   'footer.made_with_love'=> 'fet amb amor',
   'footer.made_in'       => 'Fet a Barcelona / Catalunya',
   'footer.version'       => 'Versió',
+  'footer.privacitat'    => 'Privacitat',
+  'footer.cookies'       => 'Galetes',
+
+  'cookies.banner_text' => 'Aquest lloc utilitza galetes essencials per al seu funcionament. Pots llegir-ne més a la Política de galetes.',
+  'cookies.more_info'  => 'Més informació',
+  'cookies.accept'     => 'Acceptar',
 
     // Formulari alta_usuaris
   'register.title'             => "Alta usuari",
@@ -504,7 +510,7 @@ return [
   'riders.upload.truncated_pdf' => 'El PDF sembla estar incomplet o malmès.',
 
   'riders.ia_pending.title' => 'Validacions d’IA en curs',
-  'riders.ia_pending.hint'  => 'Tens %d rider(s) a la cua o en execució. Pots continuar navegant; t’avisarem quan acabi.',
+  'riders.ia_pending.hint'  => 'Tens %d rider(s) a la cua o en execució.',
   'riders.ia_pending.queued'  => 'A la cua',
   'riders.ia_pending.running' => 'Executant',
 
@@ -609,11 +615,7 @@ return [
 'feedback.thanks' => 'Gràcies! Hem rebut el teu missatge.',
 'feedback.error_generic' => 'No s’ha pogut enviar el missatge.',
 'feedback.identity_note' => 'La identitat (nom, email i UID) s’obté automàticament del teu compte.',
-
-
-
-
-
+'feedback.select_prompt' => 'Escull una opció',
 
 
   // Visualitza

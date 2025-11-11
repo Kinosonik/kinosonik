@@ -9,10 +9,16 @@ $versio_web = $GLOBALS['versio_web'] ?? '0.0';
           style="font-size: 0.85rem;">
     <!-- Text -->
     <p class="col-md-auto mb-0 text-body-tertiary small">
-      &copy; <?= h(date('Y')) ?> Kinosonik — <?= __('footer.core_dev') ?>
+      &copy; <?= h(date('Y')) ?> Kinosonik — <?= __('footer.core_dev') ?> · <i class="bi bi-github"></i>
       &nbsp;<i class="bi bi-heart cor-bounce" aria-hidden="true"></i>&nbsp;
       <span class="visually-hidden"><?= __('footer.made_with_love') ?></span>
-      <?= __('footer.made_in') ?> · <?= __('footer.version') ?> <?= h($versio_web) ?>
+      <?= __('footer.made_in') ?> · <?= __('footer.version') ?> <?= h($versio_web) ?> ·
+      <a href="<?= h(BASE_PATH . 'politica_privacitat.php') ?>"
+       class="link-secondary text-decoration-none"><?= __('footer.privacitat') ?></a>
+       · <a href="<?= h(BASE_PATH . 'politica_cookies.php') ?>"
+      class="link-secondary text-decoration-none">
+      <?= h(__('footer.cookies') ?: 'Galetes / Cookies') ?>
+      </a>
     </p>
 
     <!-- Enllaç centrat a sota -->
@@ -25,6 +31,56 @@ $versio_web = $GLOBALS['versio_web'] ?? '0.0';
     </p>
   </footer>
 </div>
+<?php
+// --- Banner de cookies estil liquid-glass ---
+if (empty($_COOKIE['ks_cookies_ok'])):
+?>
+<style>
+#cookieBanner {
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  background-color: rgba(25, 25, 25, 0.75);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.85rem;
+  animation: fadeInCookie 0.6s ease-out;
+}
+@keyframes fadeInCookie {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#cookieBanner a { color: var(--bs-light); text-decoration: underline; }
+#cookieBanner a:hover { color: var(--bs-primary); }
+#cookieBanner .btn { border-radius: 0.4rem; }
+</style>
+
+<div id="cookieBanner" class="position-fixed bottom-0 start-0 w-100 text-light py-2" style="z-index:2000;">
+  <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+    <span class="text-body-secondary">
+      <?= h(__('cookies.banner_text') ?: 'Aquest lloc utilitza galetes essencials per al seu funcionament. Pots llegir-ne més a la Política de galetes.') ?>
+      <a href="<?= h(BASE_PATH . 'politica_cookies.php?lang=' . ($_SESSION['lang'] ?? 'ca')) ?>">
+        <?= h(__('cookies.more_info') ?: 'Més informació') ?>
+      </a>
+    </span>
+    <button id="cookieAcceptBtn" class="btn btn-primary btn-sm px-3 shadow-sm">
+      <?= h(__('cookies.accept') ?: 'Acceptar') ?>
+    </button>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("cookieAcceptBtn");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const expires = new Date();
+    expires.setFullYear(expires.getFullYear() + 1);
+    document.cookie = "ks_cookies_ok=1; expires=" + expires.toUTCString() + "; path=/; SameSite=Lax";
+    const banner = document.getElementById("cookieBanner");
+    if (banner) banner.style.display = "none";
+  });
+});
+</script>
+<?php endif; ?>
 
 </body>
 <?php include __DIR__ . "/feedback_modal.php"; ?>

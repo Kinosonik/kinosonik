@@ -196,7 +196,10 @@ if ($isLogged) {
             <li class="nav-item ms-lg-2">
               <form method="POST" action="<?= h(BASE_PATH) ?>php/logout.php" class="d-inline">
                 <input type="hidden" name="csrf" value="<?= h($_SESSION['csrf'] ?? '') ?>">
-                <button type="submit" class="btn btn-primary btn-sm"><?= __('nav.logout') ?></button>
+                <button type="submit" class="btn btn-primary btn-sm">
+                  <i class="bi bi-arrow-right-square me-1"></i>
+                  <?= __('nav.logout') ?>
+                </button>
               </form>
             </li>
             <!-- MENÚ SENSE LOGIN -->
@@ -204,12 +207,12 @@ if ($isLogged) {
             <li class="nav-item ms-lg-2">
               <?php if ($isIndex): ?>
                 <!-- Som a index → modal -->
-                <a class="btn btn-primary btn-sm" href="<?= h($loginUrl) ?>"><?= __('nav.login') ?></a>
+                <a class="btn btn-primary btn-sm" href="<?= h($loginUrl) ?>"><i class="bi bi-arrow-right-square-fill me-1"></i><?= __('nav.login') ?></a>
               <?php else: ?>
                 <!-- No som a index → redirigeix a index amb modal obert i retorn -->
                 <a class="btn btn-primary btn-sm"
                    href="<?= h(BASE_PATH) ?>index.php?modal=login&return=<?= rawurlencode($currentUrl) ?>">
-                  <?= __('nav.login') ?>
+                  <i class="bi bi-arrow-right-square-fill me-1"></i><?= __('nav.login') ?>
                 </a>
               <?php endif; ?>
             </li>

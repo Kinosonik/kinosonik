@@ -18,3 +18,13 @@
       }, false)
     })
 })()
+function showToast(message, type = 'danger') {
+  const toastEl = document.getElementById('ksToast');
+  if (!toastEl) return;
+
+  toastEl.className = `toast align-items-center text-bg-${type} border-0`;
+  toastEl.querySelector('.toast-body').textContent = message;
+
+  const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+  toast.show();
+}

@@ -7,6 +7,7 @@ require_once __DIR__ . '/middleware.php';
 require_once __DIR__ . '/i18n.php'; // normalize_lang(), set_lang()
 require_once __DIR__ . '/db.php';
 $pdo = db();
+
 if (!is_post()) { http_response_code(405); exit; }
 csrf_check_or_die();
 
@@ -19,28 +20,37 @@ set_lang($lang);
 /* ── Si hi ha sessió iniciada, persisteix a BD ─────────── */
 if (!empty($_SESSION['loggedin']) && !empty($_SESSION['user_id'])) {
   try {
-    // $pdo ja ve de preload.php (db.php)
     $st = $pdo->prepare("UPDATE Usuaris SET Idioma = :lang WHERE ID_Usuari = :id");
     $st->execute([':lang' => $lang, ':id' => (int)$_SESSION['user_id']]);
   } catch (Throwable $e) {
     error_log('set_lang persist error: ' . $e->getMessage());
-    // No bloquegem el canvi d’idioma per un error de persistència
   }
 }
 
-/* ── Redirecció segura al referer (mateix origen) ──────── */
+/* ── Redirecció segura ─────────────────────────────────── */
 $fallback = (defined('BASE_PATH') ? BASE_PATH : '/') . 'index.php';
-$ref = (string)($_SERVER['HTTP_REFERER'] ?? '');
-$target = $fallback;
+$target   = $fallback;
 
+$ref = (string)($_SERVER['HTTP_REFERER'] ?? '');
+$host   = $_SERVER['HTTP_HOST'] ?? '';
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+
+/* 🔸 PRIORITAT 1: HTTP_REFERER del mateix origen */
 if ($ref !== '') {
   $refParts = @parse_url($ref) ?: [];
-  $host = $_SERVER['HTTP_HOST'] ?? '';
-  $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-  // Accepta el referer només si és del mateix origen
   if (($refParts['host'] ?? '') === $host && ($refParts['scheme'] ?? '') === $scheme) {
     $target = $ref;
   }
+}
+
+/* 🔸 PRIORITAT 2: si no hi ha referer, usem REQUEST_URI actual (ajuda a pàgines legals) */
+if ($ref === '' && !empty($_SERVER['REQUEST_URI'])) {
+  $target = $scheme . '://' . $host . $_SERVER['REQUEST_URI'];
+}
+
+/* 🔸 PRIORITAT 3: fallback final si tot falla */
+if (empty($target)) {
+  $target = $fallback;
 }
 
 header('Location: ' . $target, true, 302);
