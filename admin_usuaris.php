@@ -286,263 +286,289 @@ $sortIcon = function (string $key) use ($sort, $dir) {
     : '<i class="bi bi-arrow-down-short ms-1"></i>';
 };
 ?>
-<div class="container-fluid my-0">
-  <div class="card shadow-sm border-0">
-    <div class="card-header bg-dark">
-      <h5 class="card-title mb-0">Llistat d’usuaris</h5>
+<!-- Filtre -->
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-12">
+      <!-- Banner missatges -->
+      <?php
+      if (!empty($_SESSION['flash'])):
+      $f = $_SESSION['flash'];
+      unset($_SESSION['flash']);
+      $type = (string)($f['type'] ?? 'info'); // success | error | info | warning
+      $text = trim((string)($f['text'] ?? ''));
+      if ($text === '' && isset($f['key'])) { $text = (string)$f['key']; } // fallback si algun script encara envia 'key'
+      $alertClass = match ($type) {
+        'success' => 'alert-success',
+        'error'   => 'alert-danger',
+        'warning' => 'alert-warning',
+        default   => 'alert-info',
+      };
+      ?>
+      <!-- Títol info dins de caixa permanent -->
+                    <div class="small">
+                        <div class="w-100 mb-4 mt-2 small text-light"
+                            style="background: var(--ks-veil);
+                            border-left:3px solid var(--ks-accent);
+                            padding:12px 18px;">
+                        <strong class="text-secondary">Event </strong>EVENT · <strong class="text-secondary">Dates </strong>EVENT 
+                        </div>
+                    </div>
+      <div class="container my-2">
+        <div class="alert <?= h($alertClass) ?> alert-dismissible fade show shadow-sm auto-dismiss-alert" role="alert">
+          <?= h($text) ?>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tanca"></button>
+        </div>
+      </div>
+      <script>
+      // Tanca sol el banner al cap de 3s
+        setTimeout(() => {
+          const el = document.querySelector('.auto-dismiss-alert');
+          if (el) bootstrap.Alert.getOrCreateInstance(el).close();
+        }, 3000);
+      </script>
+      <?php endif; ?>
     </div>
-    <!-- Banner missatges -->
-    <?php
-    if (!empty($_SESSION['flash'])):
-    $f = $_SESSION['flash'];
-    unset($_SESSION['flash']);
-    $type = (string)($f['type'] ?? 'info'); // success | error | info | warning
-    $text = trim((string)($f['text'] ?? ''));
-    if ($text === '' && isset($f['key'])) { $text = (string)$f['key']; } // fallback si algun script encara envia 'key'
-    $alertClass = match ($type) {
-      'success' => 'alert-success',
-      'error'   => 'alert-danger',
-      'warning' => 'alert-warning',
-      default   => 'alert-info',
-    };
-    ?>
-    <div class="container my-2">
-      <div class="alert <?= h($alertClass) ?> alert-dismissible fade show shadow-sm auto-dismiss-alert" role="alert">
-        <?= h($text) ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tanca"></button>
+
+    <div class="col-12 col-lg-8">
+      <div class="card border-1 shadow">
+        <!-- Títol box -->
+        <div class="card-header bg-kinosonik esquerra">
+          <h6>Filtrar usuari</h6>
+          <div class="btn-group ms-2">
+            <a class="btn-close btn-close-white" href="#"></a>
+          </div>
+        </div>
+        <!-- Body card -->
+        <div class="card-body">
+          <div class="small">
+            <form class="row row-cols-auto g-2 align-items-end mb-1" method="get" action="<?= h(BASE_PATH) ?>espai.php">
+              <input type="hidden" name="seccio" value="usuaris">
+              <div class="col-md-1">
+                <label for="f_id" class="form-label">ID</label>
+                <input type="text" pattern="\d*" inputmode="numeric"
+                  class="form-control form-control-sm"
+                  id="f_id" name="id" value="<?= h($filterId) ?>">
+              </div>
+              <div class="col-md-5">
+                <label for="f_email" class="form-label">Email</label>
+                <input type="text" class="form-control form-control-sm"
+                  id="f_email" name="email" value="<?= h($filterEmail) ?>"
+                  placeholder="exemple@correu.com">
+              </div>
+              <div class="col-md-3">
+                <label for="f_verified" class="form-label">Verificació</label>
+                <select class="form-select form-select-sm" id="f_verified" name="verified">
+                  <option value="all" <?= $filterVerif==='all'?'selected':''; ?>>Tots</option>
+                  <option value="1"   <?= $filterVerif==='1'  ?'selected':''; ?>>Verificats</option>
+                  <option value="0"   <?= $filterVerif==='0'  ?'selected':''; ?>>No verificats</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="f_tipus" class="form-label small mb-0">Tipus</label>
+                <select class="form-select form-select-sm" id="f_tipus" name="tipus">
+                  <option value="tots"   <?= $filterTipus==='tots'  ?'selected':''; ?>>Tots</option>
+                  <option value="tecnic" <?= $filterTipus==='tecnic'?'selected':''; ?>>Tècnic</option>
+                  <option value="productor"  <?= $filterTipus==='productor' ?'selected':''; ?>>Productor</option>
+                  <option value="sala"   <?= $filterTipus==='sala'  ?'selected':''; ?>>Sala</option>
+                  <option value="admin"  <?= $filterTipus==='admin' ?'selected':''; ?>>Admin</option>
+                </select>
+              </div>
+              <div class="col-md-12 text-end">
+                <button class="btn btn-primary btn-sm" type="submit">Filtrar</button>
+                <a class="btn btn-secondary btn-sm" href="<?= h(BASE_PATH) ?>espai.php?seccio=usuaris"><i class="bi bi-x-circle me-1"></i>Neteja</a>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
-    <script>
-    // Tanca sol el banner al cap de 3s
-      setTimeout(() => {
-        const el = document.querySelector('.auto-dismiss-alert');
-        if (el) bootstrap.Alert.getOrCreateInstance(el).close();
-      }, 3000);
-    </script>
-    <?php endif; ?>
-    
+  </div>
+</div>
+
+<!-- Taula resultats -->
+<div class="container-fluid my-0">
+  <div class="card border-0">
     <div class="card-body bd-0">
-      <!-- Filtres / Cerca -->
-<form class="row row-cols-auto g-2 align-items-end mb-3" method="get" action="<?= h(BASE_PATH) ?>espai.php">
-  <input type="hidden" name="seccio" value="usuaris">
-
-  <div class="col">
-    <label for="f_id" class="form-label small mb-0">ID</label>
-    <input type="text" pattern="\d*" inputmode="numeric"
-           class="form-control form-control-sm w-auto"
-           style="max-width:80px"
-           id="f_id" name="id" value="<?= h($filterId) ?>">
-  </div>
-
-  <div class="col">
-    <label for="f_email" class="form-label small mb-0">Email</label>
-    <input type="text" class="form-control form-control-sm"
-           id="f_email" name="email" value="<?= h($filterEmail) ?>"
-           placeholder="exemple@correu.com">
-  </div>
-
-  <div class="col">
-    <label for="f_verified" class="form-label small mb-0">Verificació</label>
-    <select class="form-select form-select-sm" id="f_verified" name="verified">
-      <option value="all" <?= $filterVerif==='all'?'selected':''; ?>>Tots</option>
-      <option value="1"   <?= $filterVerif==='1'  ?'selected':''; ?>>Verificats</option>
-      <option value="0"   <?= $filterVerif==='0'  ?'selected':''; ?>>No verificats</option>
-    </select>
-  </div>
-
-  <div class="col">
-    <label for="f_tipus" class="form-label small mb-0">Tipus</label>
-    <select class="form-select form-select-sm" id="f_tipus" name="tipus">
-      <option value="tots"   <?= $filterTipus==='tots'  ?'selected':''; ?>>Tots</option>
-      <option value="tecnic" <?= $filterTipus==='tecnic'?'selected':''; ?>>Tècnic</option>
-      <option value="productor"  <?= $filterTipus==='productor' ?'selected':''; ?>>Productor</option>
-      <option value="sala"   <?= $filterTipus==='sala'  ?'selected':''; ?>>Sala</option>
-      <option value="admin"  <?= $filterTipus==='admin' ?'selected':''; ?>>Admin</option>
-    </select>
-  </div>
-
-  <div class="col">
-    <button class="btn btn-primary btn-sm" type="submit">Filtrar</button>
-    <a class="btn btn-outline-secondary btn-sm" href="<?= h(BASE_PATH) ?>espai.php?seccio=usuaris">Neteja</a>
-  </div>
-</form>
-
       <!-- Resum + per pàgina -->
-      <div class="d-flex justify-content-between align-items-center small text-secondary mb-2">
-        <div>
+      <div class="row small align-items-center">
+        <div class="col-md-6 text-secondary">
           Resultats: <span class="text-body"><?= h((string)$total) ?></span>
           · Pàgina <span class="text-body"><?= h((string)$page) ?></span> de <span class="text-body"><?= h((string)$totalPages) ?></span>
         </div>
-        <form method="get" class="d-inline">
-          <?php foreach ($baseQS as $k => $v): ?>
+        <div class="col-md-6 text-md-end">
+          <form method="get" class="d-inline">
+            <?php foreach ($baseQS as $k => $v): ?>
             <input type="hidden" name="<?= h($k) ?>" value="<?= h((string)$v) ?>">
-          <?php endforeach; ?>
-          <input type="hidden" name="sort" value="<?= h($sort) ?>">
-          <input type="hidden" name="dir"  value="<?= h($dir) ?>">
-          <select name="per" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
-            <?php foreach ([10,20,50,100] as $n): ?>
-              <option value="<?= $n ?>" <?= $perPage===$n?'selected':''; ?>><?= $n ?>/pàg</option>
             <?php endforeach; ?>
-          </select>
-        </form>
+            <input type="hidden" name="sort" value="<?= h($sort) ?>">
+            <input type="hidden" name="dir"  value="<?= h($dir) ?>">
+            <select name="per" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+              <?php foreach ([10,20,50,100] as $n): ?>
+              <option value="<?= $n ?>" <?= $perPage===$n?'selected':''; ?>><?= $n ?>/pàg</option>
+              <?php endforeach; ?>
+            </select>
+          </form>
+        </div>
       </div>
 
       <!-- Taula -->
-      <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle fw-lighter small mb-0">
-          <thead class="table-dark">
-            <tr>
-              <th class="text-center fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('id')) ?>">ID <?= $sortIcon('id') ?></a>
-              </th>
-              <th class="fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('nom')) ?>">Nom <?= $sortIcon('nom') ?></a>
-              </th>
-              <th class="fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('cognoms')) ?>">Cognoms <?= $sortIcon('cognoms') ?></a>
-              </th>
-              <th class="fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('email')) ?>">Correu electrònic <?= $sortIcon('email') ?></a>
-              </th>
-              <th class="text-center fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('tipus')) ?>">Tipus <?= $sortIcon('tipus') ?></a>
-              </th>
-              <th class="text-center fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('verified')) ?>">Verificat <?= $sortIcon('verified') ?></a>
-              </th>
-              <th class="text-center fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('alta')) ?>">Alta <?= $sortIcon('alta') ?></a>
-              </th>
-              <th class="text-center fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('riders')) ?>">Riders <?= $sortIcon('riders') ?></a>
-              </th>
-              <th class="text-center fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('originals')) ?>">
-                  Originals <?= $sortIcon('originals') ?>
-                </a>
-              </th>
+      <div class="row">
+        <div class="col-md-12 table-responsive">
+          <table class="table table-sm table-hover align-middle fw-lighter small mb-0">
+            <thead class="table-dark text-light">
+              <tr>
+                <th class="text-center">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('id')) ?>">ID <?= $sortIcon('id') ?></a>
+                </th>
+                <th>
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('nom')) ?>">Nom <?= $sortIcon('nom') ?></a>
+                </th>
+                <th>
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('cognoms')) ?>">Cognoms <?= $sortIcon('cognoms') ?></a>
+                </th>
+                <th>
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('email')) ?>">Correu electrònic <?= $sortIcon('email') ?></a>
+                </th>
+                <th class="text-center">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('tipus')) ?>">Tipus <?= $sortIcon('tipus') ?></a>
+                </th>
+                <th class="text-center">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('verified')) ?>">Verificat <?= $sortIcon('verified') ?></a>
+                </th>
+                <th class="text-center">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('alta')) ?>">Alta <?= $sortIcon('alta') ?></a>
+                </th>
+                <th class="text-center">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('riders')) ?>">Riders <?= $sortIcon('riders') ?></a>
+                </th>
+                <th class="text-center">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('originals')) ?>">
+                    Originals <?= $sortIcon('originals') ?>
+                  </a>
+                </th>
+                <th class="text-center">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('seals')) ?>">Segells validats <?= $sortIcon('seals') ?></a>
+                </th>
+                <th class="text-center">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('space')) ?>">Espai (R2) <?= $sortIcon('space') ?></a>
+                </th>
+                <th class="text-center"></th>
+              </tr>
+            </thead>
+            <tbody>
+            <?php if (!$usuaris): ?>
+              <tr><td colspan="11" class="text-center text-secondary py-4">Cap resultat.</td></tr>
+              <?php else: foreach ($usuaris as $u):
+              $uid   = (int)$u['ID_Usuari'];
+              $tipus = (string)($u['Tipus_Usuari'] ?? '');
+              $verified = (int)($u['Email_Verificat'] ?? 0) === 1;
+              $riders = (int)($u['Num_Riders'] ?? 0);
+              $originals  = (int)($u['Num_Originals'] ?? 0);
+              $bytesTotal = (int)($u['Used_Bytes'] ?? 0);
+              $seals  = (int)($u['Valid_Seals'] ?? 0);
+              ?>
+              <tr data-row-user="<?= h((string)$uid) ?>">
+                <td class="text-center text-secondary"><?= h((string)$uid) ?></td>
+                <td><?= h($u['Nom_Usuari'] ?? '') ?></td>
+                <td><?= h($u['Cognoms_Usuari'] ?? '') ?></td>
+                <td><?= h($u['Email_Usuari'] ?? '') ?></td>
 
-              <th class="text-center fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('seals')) ?>">Segells validats <?= $sortIcon('seals') ?></a>
-              </th>
-              <th class="text-center fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('space')) ?>">Espai (R2) <?= $sortIcon('space') ?></a>
-              </th>
-              <th class="text-center fw-lighter"></th>
-            </tr>
-          </thead>
-          <tbody>
-          <?php if (!$usuaris): ?>
-            <tr><td colspan="11" class="text-center text-secondary py-4">Cap resultat.</td></tr>
-          <?php else: foreach ($usuaris as $u):
-            $uid   = (int)$u['ID_Usuari'];
-            $tipus = (string)($u['Tipus_Usuari'] ?? '');
-            $verified = (int)($u['Email_Verificat'] ?? 0) === 1;
-            $riders = (int)($u['Num_Riders'] ?? 0);
-            $originals  = (int)($u['Num_Originals'] ?? 0);
-            $bytesTotal = (int)($u['Used_Bytes'] ?? 0);
-            $seals  = (int)($u['Valid_Seals'] ?? 0);
-          ?>
-            <tr data-row-user="<?= h((string)$uid) ?>">
-              <td class="text-center text-secondary"><?= h((string)$uid) ?></td>
-              <td><?= h($u['Nom_Usuari'] ?? '') ?></td>
-              <td><?= h($u['Cognoms_Usuari'] ?? '') ?></td>
-              <td><?= h($u['Email_Usuari'] ?? '') ?></td>
+                <!-- Tipus: editable per admins via AJAX -->
+                <td class="text-center">
+                  <select class="form-select form-select-sm d-inline-block w-auto tipus-select"
+                          data-uid="<?= h((string)$uid) ?>"
+                          data-csrf="<?= h($CSRF) ?>">
+                    <?php foreach (['tecnic'=>'Tècnic','productor'=>'Productor','sala'=>'Sala','admin'=>'Admin'] as $val=>$lbl): ?>
+                      <option value="<?= h($val) ?>" <?= $tipus===$val?'selected':''; ?>><?= h($lbl) ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                  <span class="ms-1 d-none text-muted small spinner"
+                        aria-label="saving"><span class="spinner-border spinner-border-sm"></span></span>
+                </td>
 
-              <!-- Tipus: editable per admins via AJAX -->
-              <td class="text-center">
-                <select class="form-select form-select-sm d-inline-block w-auto tipus-select"
-                        data-uid="<?= h((string)$uid) ?>"
-                        data-csrf="<?= h($CSRF) ?>">
-                  <?php foreach (['tecnic'=>'Tècnic','productor'=>'Productor','sala'=>'Sala','admin'=>'Admin'] as $val=>$lbl): ?>
-                    <option value="<?= h($val) ?>" <?= $tipus===$val?'selected':''; ?>><?= h($lbl) ?></option>
-                  <?php endforeach; ?>
-                </select>
-                <span class="ms-1 d-none text-muted small spinner"
-                      aria-label="saving"><span class="spinner-border spinner-border-sm"></span></span>
-              </td>
+                <td class="text-center">
+                  <?php if ($verified): ?>
+                    <i class="bi bi-hand-thumbs-up" style="color: green;" aria-label="Verificat"></i>
+                  <?php else: ?>
+                    <i class="bi bi-hand-thumbs-down" style="color: red;" aria-label="No verificat"></i>
+                  <?php endif; ?>
+                </td>
+                <td class="text-center">
+                  <?= $u['Data_Alta_Usuari'] ? dt_eu($u['Data_Alta_Usuari']) : '—' ?>
+                </td>
 
-              <td class="text-center">
-                <?php if ($verified): ?>
-                  <i class="bi bi-hand-thumbs-up" style="color: green;" aria-label="Verificat"></i>
-                <?php else: ?>
-                  <i class="bi bi-hand-thumbs-down" style="color: red;" aria-label="No verificat"></i>
-                <?php endif; ?>
-              </td>
-              <td class="text-center">
-                <?= $u['Data_Alta_Usuari'] ? dt_eu($u['Data_Alta_Usuari']) : '—' ?>
-              </td>
+                <td class="text-center"><?= h((string)$riders) ?></td>
+                <td class="text-center"><?= h((string)$originals) ?></td>
+                <td class="text-center"><?= h((string)$seals) ?></td>
+                <td class="text-center"><?= h(humanBytes($bytesTotal)) ?></td>
 
-              <td class="text-center"><?= h((string)$riders) ?></td>
-              <td class="text-center"><?= h((string)$originals) ?></td>
-              <td class="text-center"><?= h((string)$seals) ?></td>
-              <td class="text-center"><?= h(humanBytes($bytesTotal)) ?></td>
+                <td class="text-end actions-cell">
+                  <div class="d-inline-flex align-items-center gap-1 flex-nowrap">
+                    <!-- Veure/Editar (obre dades.php com admin) + Riders de l'usuari -->
+                    <div class="btn-group btn-group-sm flex-nowrap">
+                      <a href="<?= h(BASE_PATH) ?>espai.php?seccio=dades&user=<?= $uid ?>"
+                        class="btn btn-primary btn-sm"
+                        data-bs-toggle="tooltip" data-bs-title="Veure / Editar">
+                        <i class="bi bi-person-gear"></i>
+                      </a>
+                      <a href="<?= h(BASE_PATH) ?>espai.php?seccio=riders&uid=<?= (int)$uid ?>"
+                        class="btn btn-primary btn-sm"
+                        data-bs-toggle="tooltip" data-bs-title="Riders de l'usuari">
+                        <i class="bi bi-music-note-list"></i>
+                      </a>
+                    </div>
+                    <!-- Eliminar (obrir modal) -->
+                    <button type="button"
+                            class="btn btn-danger btn-sm btn-open-delete"
+                            data-uid="<?= h((string)$uid) ?>"
+                            data-email="<?= h($u['Email_Usuari'] ?? '') ?>"
+                            data-name="<?= h(trim(($u['Nom_Usuari'] ?? '').' '.($u['Cognoms_Usuari'] ?? ''))) ?>"
+                            data-bs-toggle="modal" data-bs-target="#deleteUserModal"
+                            data-bs-title="Eliminar">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <?php endforeach; endif; ?>
+            </tbody>
+          </table>
+        </div>
 
-              <td class="text-end actions-cell">
-  <div class="d-inline-flex align-items-center gap-1 flex-nowrap">
-    <!-- Veure/Editar (obre dades.php com admin) + Riders de l'usuari -->
-    <div class="btn-group btn-group-sm flex-nowrap">
-      <a href="<?= h(BASE_PATH) ?>espai.php?seccio=dades&user=<?= $uid ?>"
-         class="btn btn-primary btn-sm"
-         data-bs-toggle="tooltip" data-bs-title="Veure / Editar">
-        <i class="bi bi-person-gear"></i>
-      </a>
-      <a href="<?= h(BASE_PATH) ?>espai.php?seccio=riders&uid=<?= (int)$uid ?>"
-         class="btn btn-primary btn-sm"
-         data-bs-toggle="tooltip" data-bs-title="Riders de l'usuari">
-        <i class="bi bi-music-note-list"></i>
-      </a>
-    </div>
-
-    <!-- Eliminar (obrir modal) -->
-    <button type="button"
-            class="btn btn-danger btn-sm btn-open-delete"
-            data-uid="<?= h((string)$uid) ?>"
-            data-email="<?= h($u['Email_Usuari'] ?? '') ?>"
-            data-name="<?= h(trim(($u['Nom_Usuari'] ?? '').' '.($u['Cognoms_Usuari'] ?? ''))) ?>"
-            data-bs-toggle="modal" data-bs-target="#deleteUserModal"
-            data-bs-title="Eliminar">
-      <i class="bi bi-trash3"></i>
-    </button>
-  </div>
-</td>
-            </tr>
-          <?php endforeach; endif; ?>
-          </tbody>
-        </table>
+        <!-- Paginació -->
+        <?php if ($totalPages > 1):
+          $pageUrl = function(int $p) use ($baseQS, $sort, $dir) {
+            $qs = $baseQS; $qs['page'] = $p; $qs['sort'] = $sort; $qs['dir'] = $dir;
+            return BASE_PATH . 'espai.php?' . http_build_query($qs, '', '&', PHP_QUERY_RFC3986);
+          };
+        ?>
+        <div class="col-md-12">
+          <nav class="mt-3">
+            <ul class="pagination pagination-sm justify-content-center mb-0">
+              <li class="page-item <?= $page<=1?'disabled':'' ?>"><a class="page-link" href="<?= h($pageUrl(max(1,$page-1))) ?>">«</a></li>
+              <?php
+                $start = max(1, $page-2);
+                $end   = min($totalPages, $page+2);
+                if ($start > 1) {
+                  echo '<li class="page-item"><a class="page-link" href="'.h($pageUrl(1)).'">1</a></li>';
+                  if ($start > 2) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                }
+                for ($p=$start; $p<=$end; $p++) {
+                  $active = $p===$page ? 'active' : '';
+                  echo '<li class="page-item '.$active.'"><a class="page-link" href="'.h($pageUrl($p)).'">'.$p.'</a></li>';
+                }
+                if ($end < $totalPages) {
+                  if ($end < $totalPages-1) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                  echo '<li class="page-item"><a class="page-link" href="'.h($pageUrl($totalPages)).'">'.$totalPages.'</a></li>';
+                }
+              ?>
+              <li class="page-item <?= $page>=$totalPages?'disabled':'' ?>"><a class="page-link" href="<?= h($pageUrl(min($totalPages,$page+1))) ?>">»</a></li>
+            </ul>
+          </nav>
+        </div>
+        <?php endif; ?>
       </div>
-
-      <!-- Paginació -->
-      <?php if ($totalPages > 1):
-        $pageUrl = function(int $p) use ($baseQS, $sort, $dir) {
-          $qs = $baseQS; $qs['page'] = $p; $qs['sort'] = $sort; $qs['dir'] = $dir;
-          return BASE_PATH . 'espai.php?' . http_build_query($qs, '', '&', PHP_QUERY_RFC3986);
-        };
-      ?>
-      <nav class="mt-3">
-        <ul class="pagination pagination-sm justify-content-center mb-0">
-          <li class="page-item <?= $page<=1?'disabled':'' ?>"><a class="page-link" href="<?= h($pageUrl(max(1,$page-1))) ?>">«</a></li>
-          <?php
-            $start = max(1, $page-2);
-            $end   = min($totalPages, $page+2);
-            if ($start > 1) {
-              echo '<li class="page-item"><a class="page-link" href="'.h($pageUrl(1)).'">1</a></li>';
-              if ($start > 2) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
-            }
-            for ($p=$start; $p<=$end; $p++) {
-              $active = $p===$page ? 'active' : '';
-              echo '<li class="page-item '.$active.'"><a class="page-link" href="'.h($pageUrl($p)).'">'.$p.'</a></li>';
-            }
-            if ($end < $totalPages) {
-              if ($end < $totalPages-1) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
-              echo '<li class="page-item"><a class="page-link" href="'.h($pageUrl($totalPages)).'">'.$totalPages.'</a></li>';
-            }
-          ?>
-          <li class="page-item <?= $page>=$totalPages?'disabled':'' ?>"><a class="page-link" href="<?= h($pageUrl(min($totalPages,$page+1))) ?>">»</a></li>
-        </ul>
-      </nav>
-      <?php endif; ?>
-
     </div>
   </div>
 </div>

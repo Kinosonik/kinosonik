@@ -284,13 +284,6 @@ $sortIcon = function (string $key) use ($sort, $dir) {
 // ✅ Preparem la consulta del darrer job un cop
 // $lastJobSt = $pdo->prepare("SELECT job_uid FROM ia_runs WHERE rider_id=? ORDER BY started_at DESC LIMIT 1");
 ?>
-<div class="container-fluid my-0">
-  <div class="card border-0">
-    <div class="card-header bg-dark">
-      <h5 class="card-title mb-0">Tots els riders</h5>
-    </div>
-    <div class="card-body bd-0">
-    
 
 <?php /* ───────────── Caixa: Riders pendents de validació tècnica ───────────── */ 
 $stPending = $pdo->query("
@@ -305,376 +298,412 @@ $stPending = $pdo->query("
 $pending = $stPending->fetchAll(PDO::FETCH_ASSOC);
 if ($pending):
 ?>
-<div class="container mt-3 mb-3 w-75">
-  <div class="card border border-secondary-subtle shadow-sm">
-    <div class="card-header bg-kinosonik border-0 d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center gap-2">
-        <h6 class="mb-0">Riders pendents de validació tècnica</h6>
-        <span class="badge text-bg-light"><?= (int)count($pending) ?></span>
+<!-- FORMULARIS RÀPIDS -->
+<div class="container mb-3">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="card border-1 shadow">
+        <!-- Títol box -->
+        <div class="card-header bg-kinosonik centered">
+          <h6>Riders pendents de validació tècnica: <?= (int)count($pending) ?></h6>
+          <div class="btn-group ms-2">
+            <a class="btn-close btn-close-white" href="#"></a>
+          </div>
+        </div>
+        <!-- Body card -->
+        <div class="card-body">
+          <div class="col-md-12">
+            <ul class="list-group list-group-flush small">
+            <?php foreach ($pending as $p):
+              $pid    = (int)$p['ID_Rider'];
+              $puid   = (string)$p['Rider_UID'];
+              $pdesc  = trim((string)($p['Descripcio'] ?? ''));
+              if ($pdesc === '') $pdesc = (string)($p['Nom_Arxiu'] ?? ('RD'.$pid));
+              $pref   = trim((string)($p['Referencia'] ?? ''));
+              $pemail = (string)$p['Email_Usuari'];
+              $pdt    = (string)($p['Validacio_Manual_Data'] ?? '');
+              $pdtStr = '—';
+              if ($pdt !== '' && $pdt !== '0000-00-00 00:00:00') {
+              $pdtStr = dt_eu($pdt);
+              }
+            ?>
+              <li class="list-group-item d-flex align-items-center flex-wrap gap-2">
+                <span class="text-secondary">#<?= h((string)$pid) ?></span>
+                <span class="me-2"><?= h($pdesc) ?></span>
+                <?php if ($pref !== ''): ?>
+                  <span class="me-2 fw-lighter">(Ref: <?= h($pref) ?>)</span>
+                <?php endif; ?>
+                <span class="ms-auto d-flex align-items-center gap-3">
+                <span class="text-secondary"><?= h($pemail) ?></span>
+                <span><i class="bi bi-calendar-event me-1"></i> <?= h($pdtStr) ?></span>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Accions rider">
+                  <a href="<?= h(BASE_PATH) ?>php/rider_file.php?ref=<?= h($puid) ?>&dl=1"
+                    class="btn btn-primary" title="Descarrega PDF">
+                    <i class="bi bi-download"></i>
+                  </a>
+                  <button type="button" class="btn btn-primary admin-reupload-btn"
+                    data-uid="<?= h($puid) ?>" data-id="<?= (int)$pid ?>" data-csrf="<?= h($CSRF) ?>"
+                    title="Repujar nou PDF">
+                    <i class="bi bi-arrow-repeat"></i>
+                  </button>
+                  <input type="file" accept="application/pdf" class="d-none admin-reupload-input"
+                    data-uid="<?= h($puid) ?>">
+                  <button type="button" class="btn btn-success mark-tech-ok"
+                    data-uid="<?= h($puid) ?>" data-csrf="<?= h($CSRF) ?>"
+                    title="Marcar validat tècnicament">
+                    <i class="bi bi-check2-circle"></i>
+                  </button>
+                </div>
+                </span>
+              </li>
+            <?php endforeach; ?>
+            </ul>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="card-body p-0">
-      <ul class="list-group list-group-flush small">
-        <?php foreach ($pending as $p):
-          $pid    = (int)$p['ID_Rider'];
-          $puid   = (string)$p['Rider_UID'];
-          $pdesc  = trim((string)($p['Descripcio'] ?? ''));
-          if ($pdesc === '') $pdesc = (string)($p['Nom_Arxiu'] ?? ('RD'.$pid));
-          $pref   = trim((string)($p['Referencia'] ?? ''));
-          $pemail = (string)$p['Email_Usuari'];
-          $pdt    = (string)($p['Validacio_Manual_Data'] ?? '');
-          $pdtStr = '—';
-          if ($pdt !== '' && $pdt !== '0000-00-00 00:00:00') {
-           $pdtStr = dt_eu($pdt);
-          }
-        ?>
-        <li class="list-group-item d-flex align-items-center flex-wrap gap-2">
-          <span class="text-secondary fw-lighter">#<?= h((string)$pid) ?></span>
-          <span class="me-2 fw-lighter"><?= h($pdesc) ?></span>
-          <?php if ($pref !== ''): ?>
-            <span class="me-2 fw-lighter">(Ref: <?= h($pref) ?>)</span>
-          <?php endif; ?>
-          <span class="ms-auto d-flex align-items-center gap-3">
-            <span class="text-secondary"><i class="bi bi-envelope-open"></i> <?= h($pemail) ?></span>
-            <span class="text-secondary"><i class="bi bi-calendar-event"></i> <?= h($pdtStr) ?></span>
-            <div class="btn-group btn-group-sm" role="group" aria-label="Accions rider">
-              <a href="<?= h(BASE_PATH) ?>php/rider_file.php?ref=<?= h($puid) ?>&dl=1"
-                 class="btn btn-primary" title="Descarrega PDF">
-                <i class="bi bi-download"></i>
-              </a>
-              <button type="button" class="btn btn-primary admin-reupload-btn"
-                      data-uid="<?= h($puid) ?>" data-id="<?= (int)$pid ?>" data-csrf="<?= h($CSRF) ?>"
-                      title="Repujar nou PDF">
-                <i class="bi bi-arrow-repeat"></i>
-              </button>
-              <input type="file" accept="application/pdf" class="d-none admin-reupload-input"
-                     data-uid="<?= h($puid) ?>">
-              <button type="button" class="btn btn-success mark-tech-ok"
-                      data-uid="<?= h($puid) ?>" data-csrf="<?= h($CSRF) ?>"
-                      title="Marcar validat tècnicament">
-                <i class="bi bi-check2-circle"></i>
-              </button>
-            </div>
-          </span>
-        </li>
-        <?php endforeach; ?>
-      </ul>
     </div>
   </div>
 </div>
 <?php endif; ?>
 
-<?php /* ───────────── Filtres ───────────── */ ?>
-<div class="container mt-4 mb-3 w-75">
-  <form class="row row-cols-auto g-2 align-items-end mb-3" method="get" action="<?= h(BASE_PATH) ?>espai.php">
-    <input type="hidden" name="seccio" value="admin_riders">
-
-    <div class="col">
-      <label class="form-label small mb-0">Cerca</label>
-      <input type="text" class="form-control form-control-sm" name="q"
-             value="<?= h($filterQ) ?>" placeholder="Descripció, referència, fitxer o UID">
-    </div>
-
-    <div class="col">
-      <label class="form-label small mb-0">ID</label>
-      <input type="text" class="form-control form-control-sm w-auto" name="uid"
-             value="<?= h($filterUserId) ?>" pattern="\d*" inputmode="numeric" style="max-width: 90px;">
-    </div>
-
-    <div class="col">
-      <label class="form-label small mb-0">Email</label>
-      <input type="text" class="form-control form-control-sm" name="email" value="<?= h($filterEmail) ?>">
-    </div>
-
-    <div class="col">
-      <label class="form-label small mb-0">Segell</label>
-      <select class="form-select form-select-sm" name="seal">
-        <?php $opts = ['tots'=>'Tots','cap'=>'Cap','pendent'=>'Pendent','validat'=>'Validat','caducat'=>'Caducat'];
-        foreach ($opts as $k=>$v): ?>
-          <option value="<?= h($k) ?>" <?= $filterSeal===$k?'selected':''; ?>><?= h($v) ?></option>
-        <?php endforeach; ?>
-      </select>
-    </div>
-
-    <div class="col">
-      <label class="form-label small mb-0 d-block">Pendents</label>
-      <div class="form-check form-switch mt-1">
-        <input class="form-check-input" type="checkbox" role="switch" id="fPendents"
-               name="pendents" value="1" <?= $filterPendingTech ? 'checked' : '' ?>>
-        <label class="form-check-label small" for="fPendents">Validació tècnica</label>
-      </div>
-    </div>
-
-    <div class="col">
-      <button class="btn btn-primary btn-sm" type="submit">Filtrar</button>
-      <a class="btn btn-outline-secondary btn-sm" href="<?= h(BASE_PATH) ?>espai.php?seccio=admin_riders">Neteja</a>
-    </div>
-  </form>
-</div>
-
-<?php /* ───────────── Resum resultats + per pàgina ───────────── */ ?>
-<div class="d-flex justify-content-between align-items-center small text-secondary mb-2">
-  <div>
-    Resultats: <span class="text-body"><?= h((string)$total) ?></span>
-    · Pàgina <span class="text-body"><?= h((string)$page) ?></span>
-    de <span class="text-body"><?= h((string)$totalPages) ?></span>
-  </div>
-  <form method="get" class="d-inline">
-    <?php foreach ($baseQS as $k => $v): ?>
-      <input type="hidden" name="<?= h($k) ?>" value="<?= h((string)$v) ?>">
-    <?php endforeach; ?>
-    <input type="hidden" name="sort" value="<?= h($sort) ?>">
-    <input type="hidden" name="dir"  value="<?= h($dir) ?>">
-    <select name="per" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
-      <?php foreach ([10,20,50,100] as $n): ?>
-        <option value="<?= $n ?>" <?= $perPage===$n?'selected':''; ?>><?= $n ?>/pàg</option>
-      <?php endforeach; ?>
-    </select>
-  </form>
-</div>
-
-      <!-- Taula -->
-      <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle fw-lighter small mb-0">
-          <thead class="table-dark">
-            <tr>
-              <th class="text-center fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('id')) ?>">ID <?= $sortIcon('id') ?></a>
-              </th>
-              <th class="fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('desc')) ?>">Descripció <?= $sortIcon('desc') ?></a>
-              </th>
-              <th class="fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('ref')) ?>">Ref. <?= $sortIcon('ref') ?></a>
-              </th>
-              <th class="fw-lighter">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('email')) ?>">E-mail <?= $sortIcon('email') ?></a>
-              </th>
-              <th class="text-center fw-lighter" title="Segell">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('seal')) ?>"><i class="bi bi-shield-shaded"></i> <?= $sortIcon('seal') ?></a>
-              </th>
-              <th class="text-center fw-lighter" title="Redirecció">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('redir')) ?>"><i class="bi bi-link-45deg"></i> <?= $sortIcon('redir') ?></a>
-              </th>
-              <th class="text-center fw-lighter" title="Mida">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('mida')) ?>"><i class="bi bi-hdd"></i> <?= $sortIcon('mida') ?></a>
-              </th>
-              <th class="text-center fw-lighter" title="Estat IA">
-                <a class="link-light text-decoration-none" href="<?= h($sortUrl('ia')) ?>">
-                  <i class="bi bi-cpu"></i> <?= $sortIcon('ia') ?>
-                </a>
-              </th>
-              <th class="text-center fw-lighter" title="Accions">Accions</th>
-            </tr>
-          </thead>
-          <tbody>
-          <?php if (!$rows): ?>
-            <tr><td colspan="9" class="text-center text-secondary py-4">Cap resultat.</td></tr>
-          <?php else: ?>
-            <?php
-              $iconMap = [
-                'validat' => ['bi-shield-fill-check',  'text-success', 'Validat'],
-                'caducat' => ['bi-shield-fill-x',      'text-danger',  'Caducat'],
-                'pendent' => ['bi-shield-exclamation', 'text-warning', 'Pendent'],
-                'cap'     => ['bi-shield',             'text-secondary','Sense segell']
-              ];
-            ?>
-            <?php foreach ($rows as $r):
-              $id   = (int)$r['ID_Rider'];
-              $uid  = (string)$r['Rider_UID'];
-              $desc = trim((string)($r['Descripcio'] ?? ''));
-              $ref  = trim((string)($r['Referencia'] ?? ''));
-              $estat = strtolower(trim((string)($r['Estat_Segell'] ?? 'cap')));
-              $mida  = (int)($r['Mida_Bytes'] ?? 0);
-              $uidOwner = (int)$r['UID'];
-              $email    = (string)$r['Email_Usuari'];
-              $hasRedir = !empty($r['rider_actualitzat']);
-              $manualReq = (int)($r['Validacio_Manual_Solicitada'] ?? 0);
-              $pendingTech = ($manualReq === 1) && !in_array($estat, ['validat','caducat'], true);
-              $rowStyle  = $pendingTech ? ' style="border-left:4px solid #dc3545;"' : '';
-              $display = $desc !== '' ? $desc : ( ($r['Nom_Arxiu'] ?? '') ?: $uid );
-              [$ic,$col,$title] = $iconMap[$estat] ?? ['bi-shield','text-secondary','Segell'];
-              $canCopyView = ($estat === 'validat' || $estat === 'caducat');
-              $userLink = BASE_PATH . 'espai.php?seccio=dades&user=' . $uidOwner;
-
-              $iaStatus = strtolower(trim((string)($r['IA_Status'] ?? '')));
-              $iaScore  = $r['IA_Score'] ?? null;
-              $iaJob    = (string)($r['IA_Job'] ?? '');
-              $iaStarted = $r['IA_Started_At'] ?? null;
-              $iaFinished = $r['IA_Finished_At'] ?? null;
-              $iaErr    = trim((string)($r['IA_Error'] ?? ''));
-
-              // Mapeig d'icones
-              $IA_ICON = [
-                'queued'  => ['bi-hourglass-split','text-secondary','A la cua'],
-                'running' => ['bi-lightning-charge','text-warning','Executant'],
-                'success' => ['bi-check-circle-fill','text-success','Complet'],
-                'ok'      => ['bi-check-circle-fill','text-success','Complet'],
-                'error'   => ['bi-exclamation-triangle-fill','text-danger','Error'],
-              ];
-              [$iaIc, $iaCol, $iaTitle] = $IA_ICON[$iaStatus] ?? ['bi-dash-circle','text-secondary','Sense execució'];
-
-              $iaTip = '';
-              
-              // Tooltip
-              if ($iaScore !== null)   $iaTip .= " · score: {$iaScore}";
-              if ($iaStarted)          $iaTip .= " · start: {$iaStarted}";
-              if ($iaFinished)         $iaTip .= " · end: {$iaFinished}";
-              if ($iaStatus === 'error' && $iaErr !== '') $iaTip .= " · err: " . mb_strimwidth($iaErr, 0, 120, '…');
-
-              ?>
-              <tr <?= $rowStyle ?> data-row-uid="<?= h($uid) ?>">
-                <td class="text-center text-secondary"><?= h((string)$id) ?></td>
-                <td><?= h($display) ?></td>
-                <td><?= h($ref) ?></td>
-                <td>
-                  <a href="<?= h($userLink) ?>" class="link-body-emphasis text-decoration-none" title="Obre fitxa de l’usuari">
-                    <?= h($email) ?>
-                  </a>
-                </td>
-                
-
-                <!-- Segell -->
-                <td class="text-center" data-bs-toggle="tooltip" data-bs-title="<?= h($title) ?>">
-                  <div class="d-inline-flex align-items-center gap-2 flex-nowrap">
-                    <i class="seal-icon bi <?= h($ic) ?> <?= h($col) ?>" data-estat="<?= h($estat) ?>" data-uid="<?= h($uid) ?>"></i>
-                    <select class="form-select form-select-sm seal-select w-auto"
-                            data-uid="<?= h($uid) ?>"
-                            data-csrf="<?= h($CSRF) ?>">
-                        <?php foreach (['cap'=>'Cap','pendent'=>'Pendent','validat'=>'Validat','caducat'=>'Caducat'] as $val=>$lbl): ?>
-                        <option value="<?= h($val) ?>" <?= $estat===$val?'selected':''; ?>><?= h($lbl) ?></option>
-                      <?php endforeach; ?>
-                    </select>
+<!-- Filtres -->
+<!-- FORMULARIS RÀPIDS -->
+<div class="container mb-3">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="card border-1 shadow">
+        <!-- Títol box -->
+        <div class="card-header bg-kinosonik esquerra">
+          <h6>Filtrar riders</h6>
+          <div class="btn-group ms-2">
+            <a class="btn-close btn-close-white" href="#"></a>
+          </div>
+        </div>
+        <!-- Body card -->
+        <div class="card-body">
+          <div class="small">
+            <form class="row row-cols-auto g-2 align-items-end mb-3" method="get" action="<?= h(BASE_PATH) ?>espai.php">
+              <input type="hidden" name="seccio" value="admin_riders">
+                <div class="col-md-11">
+                  <label class="form-label">Cerca</label>
+                  <input type="text" class="form-control form-control-sm" name="q"
+                    value="<?= h($filterQ) ?>" placeholder="Descripció, referència, fitxer o UID">
+                </div>
+                <div class="col-md-1">
+                  <label class="form-label">ID</label>
+                  <input type="text" class="form-control form-control-sm" name="uid"
+                    value="<?= h($filterUserId) ?>" pattern="\d*" inputmode="numeric">
+                </div>  
+                <div class="col-md-4">
+                  <label class="form-label">Email</label>
+                  <input type="text" class="form-control form-control-sm" name="email" value="<?= h($filterEmail) ?>">
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label">Segell</label>
+                  <select class="form-select form-select-sm" name="seal">
+                    <?php $opts = ['tots'=>'Tots','cap'=>'Cap','pendent'=>'Pendent','validat'=>'Validat','caducat'=>'Caducat'];
+                    foreach ($opts as $k=>$v): ?>
+                      <option value="<?= h($k) ?>" <?= $filterSeal===$k?'selected':''; ?>><?= h($v) ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input"
+                          type="checkbox"
+                          role="switch"
+                          id="fPendents"
+                          name="pendents"
+                          value="1"
+                          <?= $filterPendingTech ? 'checked' : '' ?>>
+                    <label class="form-check-label" for="fPendents">
+                      Validació tècnica
+                    </label>
                   </div>
-                </td>
-
-                <!-- Redirecció -->
-                <td class="text-center">
-                  <?php if ($hasRedir): ?>
-                    <i class="bi bi-link-45deg text-success" title="Té redirecció"></i>
-                  <?php else: ?>
-                    <i class="bi bi-x-circle text-danger" title="Sense redirecció"></i>
-                  <?php endif; ?>
-                </td>
-                <!-- Tamany arxiu -->
-                <td class="text-center"><?= h(humanBytes($mida)) ?></td>
-
-                <!-- Admin iA -->
-                <td class="text-center"
-                  <?= $iaTip !== '' ? 'data-bs-toggle="tooltip" data-bs-title="'.h(ltrim($iaTip, " ·")).'"' : '' ?>>
-                  <div class="d-inline-flex align-items-center gap-2">
-                    <i class="bi <?= h($iaIc) ?> <?= h($iaCol) ?>"></i>
-                    <?php if ($iaScore !== null): ?>
-                      <span class="text-secondary small"><?= h((string)$iaScore) ?></span>
-                    <?php endif; ?>
-                    <?php if ($iaJob !== ''): ?>
-                    <a class="btn btn-outline-secondary btn-sm py-0 px-1"
-                      href="<?= h(BASE_PATH) ?>php/admin/log_view.php?job=<?= h($iaJob) ?>&mode=html"
-                      target="_blank" title="Veure log IA" rel="noopener">
-                      <i class="bi bi-journal-text"></i>
-                    </a>
-                    <?php else: ?>
-                    <button class="btn btn-outline-secondary btn-sm py-0 px-1" disabled title="Sense log">
-                      <i class="bi bi-journal-text"></i>
-                    </button>
-                    <?php endif; ?>
-                  </div>
-                </td>
-                <!-- Accions -->
-                <td class="text-end actions-cell">
-                  <div class="d-inline-flex align-items-center gap-1 flex-nowrap">
-                    <div class="btn-group btn-group-sm flex-nowrap" role="group">
-                      <?php if ($canCopyView): ?>
-                      <button type="button" class="btn btn-primary btn-sm copy-link-btn"
-                        data-uid="<?= h($uid) ?>" data-bs-toggle="tooltip" data-bs-title="<?= h(__('common.copy') ?: 'Copiar enllaç') ?>">
-                        <i class="bi bi-qr-code"></i>
-                      </button>
-                      <a href="<?= h(BASE_PATH.'visualitza.php?ref='.rawurlencode($uid)) ?>"
-                        class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-title="<?= h(__('riders.actions.view_card') ?: 'Pàgina pública') ?>">
-                        <i class="bi bi-box-arrow-up-right"></i>
-                      </a>
-                      <?php else: ?>
-                      <button type="button" class="btn btn-secondary btn-sm" disabled data-bs-toggle="tooltip" data-bs-title="<?= h(__('common.copy') ?: 'Copiar enllaç') ?>">
-                        <i class="bi bi-qr-code"></i>
-                      </button>
-                      <button type="button" class="btn btn-secondary btn-sm" disabled data-bs-toggle="tooltip" data-bs-title="<?= h(__('riders.actions.view_card') ?: 'Pàgina pública') ?>">
-                        <i class="bi bi-box-arrow-up-right"></i>
-                      </button>
-                      <?php endif; ?>
-                      <!-- Veure PDF -->
-                      <a href="<?= h(BASE_PATH) ?>php/rider_file.php?ref=<?= h($uid) ?>"
-                        class="btn btn-primary btn-sm" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-title="<?= h(__('riders.table.col_published') ?: 'Veure PDF') ?>">
-                        <i class="bi bi-eye"></i>
-                      </a>
-                      <!-- Caducar (soft-delete) → només té sentit si és 'validat' -->
-                      <?php if ($estat === 'validat'): ?>
-                      <button type="button"
-                        class="btn btn-primary btn-sm expire-btn text-danger"
-                        data-id="<?= (int)$id ?>"
-                        data-uid="<?= h($uid) ?>"
-                        data-csrf="<?= h($CSRF) ?>"
-                        data-bs-toggle="tooltip"
-                        data-bs-title="<?= h(__('riders.actions.expire') ?: 'Caducar') ?>">
-                        <i class="bi bi-shield-fill-x"></i>
-                      </button>
-                      <?php else: ?>
-                      <button type="button" class="btn btn-secondary btn-sm" disabled
-                        data-bs-toggle="tooltip" data-bs-title="<?= h(__('riders.actions.expire') ?: 'Caducar') ?>">
-                        <i class="bi bi-shield-x"></i>
-                      </button>
-                      <?php endif; ?>
-                      <!-- Auditoria del rider --> 
-                      <?php
-                      $auditUrl = BASE_PATH . 'espai.php?' . http_build_query(
-                        ['seccio' => 'admin_audit', 'rider_uid' => $uid, 'per' => 50],
-                        '', '&', PHP_QUERY_RFC3986
-                      );
-                      ?>
-                      <a href="<?= h($auditUrl) ?>"
-                        class="btn btn-primary btn-sm"
-                        data-bs-toggle="tooltip"
-                        data-bs-title="Auditoria del rider">
-                        <i class="bi bi-clipboard-data"></i>
-                      </a>
-                      <?php
-                        // Actiu si hi ha com a mínim una execució IA (ja tens $iaJob de la LEFT JOIN)
-                        $hasRuns = ($iaJob !== '');
-                        // URL a admin_logs filtrat per rider
-                        $logsUrl = BASE_PATH . 'espai.php?' . http_build_query(
-                          ['seccio' => 'admin_logs', 'rider' => $id, 'per' => 50],
-                          '', '&', PHP_QUERY_RFC3986
-                        );
-                      ?>
-                      <?php if ($hasRuns): ?>
-                        <a class="btn btn-sm btn-primary" href="<?= h($logsUrl) ?>" target="_blank" rel="noopener"
-                          data-bs-toggle="tooltip" data-bs-title="Veure execucions IA d’aquest rider">
-                          <i class="bi bi-cpu"></i>
-                        </a>
-                      <?php else: ?>
-                        <button class="btn btn-sm btn-secondary" disabled data-bs-toggle="tooltip" data-bs-title="Sense execucions IA">
-                          <i class="bi bi-cpu"></i>
-                        </button>
-                      <?php endif; ?>
-                      <!-- Hard delete (obrir modal) -->
-                      <button type="button"
-                        class="btn btn-danger btn-sm admin-delete-btn"
-                        data-id="<?= (int)$id ?>"
-                        data-uid="<?= h($uid) ?>"
-                        data-email="<?= h($email) ?>"
-                        data-desc="<?= h($display) ?>"
-                        data-csrf="<?= h($CSRF) ?>"
-                        data-bs-toggle="tooltip"
-                        data-bs-title="<?= h(__('common.delete') ?: 'Eliminar') ?>">
-                        <i class="bi bi-trash3"></i>
-                      </button>
+                </div>
+                <div class="col-md-2">
+                  <button class="btn btn-primary btn-sm" type="submit">Filtrar</button>
+      <a class="btn btn-secondary btn-sm" href="<?= h(BASE_PATH) ?>espai.php?seccio=admin_riders">Neteja</a>
+                </div>
+                            
+                        </form>
                     </div>
-                  </div>
-                </td>
-              </tr>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fi Filtres -->
+
+<!-- Tots els riders -->
+<div class="container-fluid my-0">
+  <div class="card border-0">
+    <div class="card-body bd-0">
+      <div class="row">
+        <div class="col-md-6 small text-secondary">
+          Resultats: <span class="text-body"><?= h((string)$total) ?></span>
+          · Pàgina <span class="text-body"><?= h((string)$page) ?></span>
+          de <span class="text-body"><?= h((string)$totalPages) ?></span>
+        </div>
+        <div class="col-md-6 text-end">
+          <form method="get" class="d-inline">
+            <?php foreach ($baseQS as $k => $v): ?>
+              <input type="hidden" name="<?= h($k) ?>" value="<?= h((string)$v) ?>">
             <?php endforeach; ?>
-          <?php endif; ?>
-          </tbody>
-        </table>
+            <input type="hidden" name="sort" value="<?= h($sort) ?>">
+            <input type="hidden" name="dir"  value="<?= h($dir) ?>">
+            <select name="per" class="form-select form-select-sm d-inline-block w-auto" onchange="this.form.submit()">
+              <?php foreach ([10,20,50,100] as $n): ?>
+                <option value="<?= $n ?>" <?= $perPage===$n?'selected':''; ?>><?= $n ?>/pàg</option>
+              <?php endforeach; ?>
+            </select>
+          </form>
+        </div>
+      </div>
+      <div class="row">
+        <!-- TAULA -->
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle fw-lighter small mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th class="text-center fw-lighter">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('id')) ?>">ID <?= $sortIcon('id') ?></a>
+                </th>
+                <th class="fw-lighter">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('desc')) ?>">Descripció <?= $sortIcon('desc') ?></a>
+                </th>
+                <th class="fw-lighter">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('ref')) ?>">Ref. <?= $sortIcon('ref') ?></a>
+                </th>
+                <th class="fw-lighter">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('email')) ?>">E-mail <?= $sortIcon('email') ?></a>
+                </th>
+                <th class="text-center fw-lighter" title="Segell">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('seal')) ?>"><i class="bi bi-shield-shaded"></i> <?= $sortIcon('seal') ?></a>
+                </th>
+                <th class="text-center fw-lighter" title="Redirecció">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('redir')) ?>"><i class="bi bi-link-45deg"></i> <?= $sortIcon('redir') ?></a>
+                </th>
+                <th class="text-center fw-lighter" title="Mida">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('mida')) ?>"><i class="bi bi-hdd"></i> <?= $sortIcon('mida') ?></a>
+                </th>
+                <th class="text-center fw-lighter" title="Estat IA">
+                  <a class="link-light text-decoration-none" href="<?= h($sortUrl('ia')) ?>">
+                    <i class="bi bi-cpu"></i> <?= $sortIcon('ia') ?>
+                  </a>
+                </th>
+                <th class="text-center fw-lighter" title="Accions">Accions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if (!$rows): ?>
+                <tr><td colspan="9" class="text-center text-secondary py-4">Cap resultat.</td></tr>
+              <?php else: ?>
+                <?php
+                  $iconMap = [
+                    'validat' => ['bi-shield-fill-check',  'text-success', 'Validat'],
+                    'caducat' => ['bi-shield-fill-x',      'text-danger',  'Caducat'],
+                    'pendent' => ['bi-shield-exclamation', 'text-warning', 'Pendent'],
+                    'cap'     => ['bi-shield',             'text-secondary','Sense segell']
+                  ];
+                ?>
+                <?php foreach ($rows as $r):
+                  $id   = (int)$r['ID_Rider'];
+                  $uid  = (string)$r['Rider_UID'];
+                  $desc = trim((string)($r['Descripcio'] ?? ''));
+                  $ref  = trim((string)($r['Referencia'] ?? ''));
+                  $estat = strtolower(trim((string)($r['Estat_Segell'] ?? 'cap')));
+                  $mida  = (int)($r['Mida_Bytes'] ?? 0);
+                  $uidOwner = (int)$r['UID'];
+                  $email    = (string)$r['Email_Usuari'];
+                  $hasRedir = !empty($r['rider_actualitzat']);
+                  $manualReq = (int)($r['Validacio_Manual_Solicitada'] ?? 0);
+                  $pendingTech = ($manualReq === 1) && !in_array($estat, ['validat','caducat'], true);
+                  $rowStyle  = $pendingTech ? ' style="border-left:4px solid #dc3545;"' : '';
+                  $display = $desc !== '' ? $desc : ( ($r['Nom_Arxiu'] ?? '') ?: $uid );
+                  [$ic,$col,$title] = $iconMap[$estat] ?? ['bi-shield','text-secondary','Segell'];
+                  $canCopyView = ($estat === 'validat' || $estat === 'caducat');
+                  $userLink = BASE_PATH . 'espai.php?seccio=dades&user=' . $uidOwner;
+
+                  $iaStatus = strtolower(trim((string)($r['IA_Status'] ?? '')));
+                  $iaScore  = $r['IA_Score'] ?? null;
+                  $iaJob    = (string)($r['IA_Job'] ?? '');
+                  $iaStarted = $r['IA_Started_At'] ?? null;
+                  $iaFinished = $r['IA_Finished_At'] ?? null;
+                  $iaErr    = trim((string)($r['IA_Error'] ?? ''));
+
+                  // Mapeig d'icones
+                  $IA_ICON = [
+                    'queued'  => ['bi-hourglass-split','text-secondary','A la cua'],
+                    'running' => ['bi-lightning-charge','text-warning','Executant'],
+                    'success' => ['bi-check-circle-fill','text-success','Complet'],
+                    'ok'      => ['bi-check-circle-fill','text-success','Complet'],
+                    'error'   => ['bi-exclamation-triangle-fill','text-danger','Error'],
+                  ];
+                  [$iaIc, $iaCol, $iaTitle] = $IA_ICON[$iaStatus] ?? ['bi-dash-circle','text-secondary','Sense execució'];
+
+                  $iaTip = '';
+                  
+                  // Tooltip
+                  if ($iaScore !== null)   $iaTip .= " · score: {$iaScore}";
+                  if ($iaStarted)          $iaTip .= " · start: {$iaStarted}";
+                  if ($iaFinished)         $iaTip .= " · end: {$iaFinished}";
+                  if ($iaStatus === 'error' && $iaErr !== '') $iaTip .= " · err: " . mb_strimwidth($iaErr, 0, 120, '…');
+
+                  ?>
+                  <tr <?= $rowStyle ?> data-row-uid="<?= h($uid) ?>">
+                    <td class="text-center text-secondary"><?= h((string)$id) ?></td>
+                    <td><?= h($display) ?></td>
+                    <td><?= h($ref) ?></td>
+                    <td>
+                      <a href="<?= h($userLink) ?>" class="link-body-emphasis text-decoration-none" title="Obre fitxa de l’usuari">
+                        <?= h($email) ?>
+                      </a>
+                    </td>
+                    
+
+                    <!-- Segell -->
+                    <td class="text-center" data-bs-toggle="tooltip" data-bs-title="<?= h($title) ?>">
+                      <div class="d-inline-flex align-items-center gap-2 flex-nowrap">
+                        <i class="seal-icon bi <?= h($ic) ?> <?= h($col) ?>" data-estat="<?= h($estat) ?>" data-uid="<?= h($uid) ?>"></i>
+                        <select class="form-select form-select-sm seal-select w-auto"
+                                data-uid="<?= h($uid) ?>"
+                                data-csrf="<?= h($CSRF) ?>">
+                            <?php foreach (['cap'=>'Cap','pendent'=>'Pendent','validat'=>'Validat','caducat'=>'Caducat'] as $val=>$lbl): ?>
+                            <option value="<?= h($val) ?>" <?= $estat===$val?'selected':''; ?>><?= h($lbl) ?></option>
+                          <?php endforeach; ?>
+                        </select>
+                      </div>
+                    </td>
+
+                    <!-- Redirecció -->
+                    <td class="text-center">
+                      <?php if ($hasRedir): ?>
+                        <i class="bi bi-link-45deg text-success" title="Té redirecció"></i>
+                      <?php else: ?>
+                        <i class="bi bi-x-circle text-danger" title="Sense redirecció"></i>
+                      <?php endif; ?>
+                    </td>
+                    <!-- Tamany arxiu -->
+                    <td class="text-center"><?= h(humanBytes($mida)) ?></td>
+
+                    <!-- Admin iA -->
+                    <td class="text-center"
+                      <?= $iaTip !== '' ? 'data-bs-toggle="tooltip" data-bs-title="'.h(ltrim($iaTip, " ·")).'"' : '' ?>>
+                      <div class="d-inline-flex align-items-center gap-2">
+                        <i class="bi <?= h($iaIc) ?> <?= h($iaCol) ?>"></i>
+                        <?php if ($iaScore !== null): ?>
+                          <span class="text-secondary small"><?= h((string)$iaScore) ?></span>
+                        <?php endif; ?>
+                        <?php if ($iaJob !== ''): ?>
+                        <a class="btn btn-outline-secondary btn-sm py-0 px-1"
+                          href="<?= h(BASE_PATH) ?>php/admin/log_view.php?job=<?= h($iaJob) ?>&mode=html"
+                          target="_blank" title="Veure log IA" rel="noopener">
+                          <i class="bi bi-journal-text"></i>
+                        </a>
+                        <?php else: ?>
+                        <button class="btn btn-outline-secondary btn-sm py-0 px-1" disabled title="Sense log">
+                          <i class="bi bi-journal-text"></i>
+                        </button>
+                        <?php endif; ?>
+                      </div>
+                    </td>
+                    <!-- Accions -->
+                    <td class="text-end actions-cell">
+                      <div class="d-inline-flex align-items-center gap-1 flex-nowrap">
+                        <div class="btn-group btn-group-sm flex-nowrap" role="group">
+                          <?php if ($canCopyView): ?>
+                          <button type="button" class="btn btn-primary btn-sm copy-link-btn"
+                            data-uid="<?= h($uid) ?>" data-bs-toggle="tooltip" data-bs-title="<?= h(__('common.copy') ?: 'Copiar enllaç') ?>">
+                            <i class="bi bi-qr-code"></i>
+                          </button>
+                          <a href="<?= h(BASE_PATH.'visualitza.php?ref='.rawurlencode($uid)) ?>"
+                            class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-title="<?= h(__('riders.actions.view_card') ?: 'Pàgina pública') ?>">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                          </a>
+                          <?php else: ?>
+                          <button type="button" class="btn btn-secondary btn-sm" disabled data-bs-toggle="tooltip" data-bs-title="<?= h(__('common.copy') ?: 'Copiar enllaç') ?>">
+                            <i class="bi bi-qr-code"></i>
+                          </button>
+                          <button type="button" class="btn btn-secondary btn-sm" disabled data-bs-toggle="tooltip" data-bs-title="<?= h(__('riders.actions.view_card') ?: 'Pàgina pública') ?>">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                          </button>
+                          <?php endif; ?>
+                          <!-- Veure PDF -->
+                          <a href="<?= h(BASE_PATH) ?>php/rider_file.php?ref=<?= h($uid) ?>"
+                            class="btn btn-primary btn-sm" target="_blank" rel="noopener" data-bs-toggle="tooltip" data-bs-title="<?= h(__('riders.table.col_published') ?: 'Veure PDF') ?>">
+                            <i class="bi bi-eye"></i>
+                          </a>
+                          <!-- Caducar (soft-delete) → només té sentit si és 'validat' -->
+                          <?php if ($estat === 'validat'): ?>
+                          <button type="button"
+                            class="btn btn-primary btn-sm expire-btn text-danger"
+                            data-id="<?= (int)$id ?>"
+                            data-uid="<?= h($uid) ?>"
+                            data-csrf="<?= h($CSRF) ?>"
+                            data-bs-toggle="tooltip"
+                            data-bs-title="<?= h(__('riders.actions.expire') ?: 'Caducar') ?>">
+                            <i class="bi bi-shield-fill-x"></i>
+                          </button>
+                          <?php else: ?>
+                          <button type="button" class="btn btn-secondary btn-sm" disabled
+                            data-bs-toggle="tooltip" data-bs-title="<?= h(__('riders.actions.expire') ?: 'Caducar') ?>">
+                            <i class="bi bi-shield-x"></i>
+                          </button>
+                          <?php endif; ?>
+                          <!-- Auditoria del rider --> 
+                          <?php
+                          $auditUrl = BASE_PATH . 'espai.php?' . http_build_query(
+                            ['seccio' => 'admin_audit', 'rider_uid' => $uid, 'per' => 50],
+                            '', '&', PHP_QUERY_RFC3986
+                          );
+                          ?>
+                          <a href="<?= h($auditUrl) ?>"
+                            class="btn btn-primary btn-sm"
+                            data-bs-toggle="tooltip"
+                            data-bs-title="Auditoria del rider">
+                            <i class="bi bi-clipboard-data"></i>
+                          </a>
+                          <?php
+                            // Actiu si hi ha com a mínim una execució IA (ja tens $iaJob de la LEFT JOIN)
+                            $hasRuns = ($iaJob !== '');
+                            // URL a admin_logs filtrat per rider
+                            $logsUrl = BASE_PATH . 'espai.php?' . http_build_query(
+                              ['seccio' => 'admin_logs', 'rider' => $id, 'per' => 50],
+                              '', '&', PHP_QUERY_RFC3986
+                            );
+                          ?>
+                          <?php if ($hasRuns): ?>
+                            <a class="btn btn-sm btn-primary" href="<?= h($logsUrl) ?>" target="_blank" rel="noopener"
+                              data-bs-toggle="tooltip" data-bs-title="Veure execucions IA d’aquest rider">
+                              <i class="bi bi-cpu"></i>
+                            </a>
+                          <?php else: ?>
+                            <button class="btn btn-sm btn-secondary" disabled data-bs-toggle="tooltip" data-bs-title="Sense execucions IA">
+                              <i class="bi bi-cpu"></i>
+                            </button>
+                          <?php endif; ?>
+                          <!-- Hard delete (obrir modal) -->
+                          <button type="button"
+                            class="btn btn-danger btn-sm admin-delete-btn"
+                            data-id="<?= (int)$id ?>"
+                            data-uid="<?= h($uid) ?>"
+                            data-email="<?= h($email) ?>"
+                            data-desc="<?= h($display) ?>"
+                            data-csrf="<?= h($CSRF) ?>"
+                            data-bs-toggle="tooltip"
+                            data-bs-title="<?= h(__('common.delete') ?: 'Eliminar') ?>">
+                            <i class="bi bi-trash3"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
       </div>
       <!-- Paginació -->
       <?php if ($totalPages > 1):
@@ -684,35 +713,31 @@ if ($pending):
         };
       ?>
       <div>
-      <nav class="mt-3">
-        <ul class="pagination pagination-sm justify-content-center mb-0">
-          <li class="page-item <?= $page<=1?'disabled':'' ?>"><a class="page-link" href="<?= h($pageUrl(max(1,$page-1))) ?>">«</a></li>
-          <?php
-            $start = max(1, $page-2);
-            $end   = min($totalPages, $page+2);
-            if ($start > 1) {
-              echo '<li class="page-item"><a class="page-link" href="'.h($pageUrl(1)).'">1</a></li>';
-              if ($start > 2) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
-            }
-            for ($p=$start; $p<=$end; $p++) {
-              $active = $p===$page ? 'active' : '';
-              echo '<li class="page-item '.$active.'"><a class="page-link" href="'.h($pageUrl($p)).'">'.$p.'</a></li>';
-            }
-            if ($end < $totalPages) {
-              if ($end < $totalPages-1) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
-              echo '<li class="page-item"><a class="page-link" href="'.h($pageUrl($totalPages)).'">'.$totalPages.'</a></li>';
-            }
-          ?>
-          <li class="page-item <?= $page>=$totalPages?'disabled':'' ?>"><a class="page-link" href="<?= h($pageUrl(min($totalPages,$page+1))) ?>">»</a></li>
-        </ul>
-      </nav>
-          </div>
+        <nav class="mt-3">
+          <ul class="pagination pagination-sm justify-content-center mb-0">
+            <li class="page-item <?= $page<=1?'disabled':'' ?>"><a class="page-link" href="<?= h($pageUrl(max(1,$page-1))) ?>">«</a></li>
+            <?php
+              $start = max(1, $page-2);
+              $end   = min($totalPages, $page+2);
+              if ($start > 1) {
+                echo '<li class="page-item"><a class="page-link" href="'.h($pageUrl(1)).'">1</a></li>';
+                if ($start > 2) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+              }
+              for ($p=$start; $p<=$end; $p++) {
+                $active = $p===$page ? 'active' : '';
+                echo '<li class="page-item '.$active.'"><a class="page-link" href="'.h($pageUrl($p)).'">'.$p.'</a></li>';
+              }
+              if ($end < $totalPages) {
+                if ($end < $totalPages-1) echo '<li class="page-item disabled"><span class="page-link">…</span></li>';
+                echo '<li class="page-item"><a class="page-link" href="'.h($pageUrl($totalPages)).'">'.$totalPages.'</a></li>';
+              }
+            ?>
+            <li class="page-item <?= $page>=$totalPages?'disabled':'' ?>"><a class="page-link" href="<?= h($pageUrl(min($totalPages,$page+1))) ?>">»</a></li>
+          </ul>
+        </nav>
+      </div>
       <?php endif; ?>
-
-
-
-
-    <?php /* ───────────── Cards resum ───────────── */ ?>
+      <!-- CARDS RESUM -->
       <div class="card border-0 mb-3">
         <div class="card-body py-3">
           <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-5 g-3 text-center">
@@ -749,11 +774,6 @@ if ($pending):
           </div>
         </div>
       </div>
-
-
-
-
-
       <!-- Widget IA -->
       <?php
       require_once __DIR__ . '/php/ia_admin_tools.php';
@@ -781,116 +801,114 @@ if ($pending):
           }
         }
       }
-?>
+      ?>
 
-<div class="d-flex align-items-center gap-2 my-2">
-  <form method="post" class="mb-0">
-    <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
-    <button class="btn btn-secondary btn-sm" name="ia_action" value="diag">
-      <i class="bi bi-search"></i> Diagnosticar inconsistències
-    </button>
-  </form>
+      <div class="d-flex align-items-center gap-2 my-2">
+        <form method="post" class="mb-0">
+          <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+          <button class="btn btn-secondary btn-sm" name="ia_action" value="diag">
+            <i class="bi bi-search"></i> Diagnosticar inconsistències
+          </button>
+        </form>
 
-  <form method="post" class="mb-0" onsubmit="return confirm('Vols executar l\\\'auto-neteja segura?');">
-    <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
-    <button class="btn btn-secondary btn-sm" name="ia_action" value="fix">
-      <i class="bi bi-tools"></i> Auto-neteja segura
-    </button>
-  </form>
-</div>
+        <form method="post" class="mb-0" onsubmit="return confirm('Vols executar l\\\'auto-neteja segura?');">
+          <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+          <button class="btn btn-secondary btn-sm" name="ia_action" value="fix">
+            <i class="bi bi-tools"></i> Auto-neteja segura
+          </button>
+        </form>
+      </div>
 
-<?php if ($ia_msg): ?>
-  <div class="alert alert-<?= htmlspecialchars($ia_msg['type']) ?> fw-lighter py-2">
-    <?= htmlspecialchars($ia_msg['text']) ?>
-  </div>
-<?php endif; ?>
+      <?php if ($ia_msg): ?>
+      <div class="alert alert-<?= htmlspecialchars($ia_msg['type']) ?> fw-lighter py-2">
+        <?= htmlspecialchars($ia_msg['text']) ?>
+      </div>
+      <?php endif; ?>
 
-<?php if (!empty($ia_log)): ?>
-  <div class="card text-bg-dark my-2">
-    <div class="card-body py-2">
-      <div class="fw-lighter mb-1">Log d’operacions</div>
-      <pre class="small mb-0"><?= htmlspecialchars(implode("\n", $ia_log)) ?></pre>
-    </div>
-  </div>
-<?php endif; ?>
-
-<?php if (!empty($ia_diag)): ?>
-  <div class="row g-3 my-2 fw-lighter">
-    <div class="col-md-4">
-      <div class="card text-bg-dark h-100">
-        <div class="card-body">
-          <div class="mb-2">Duplicats actius per rider</div>
-          <?php if ($ia_diag['dup_actius']): ?>
-            <table class="table table-sm table-dark table-striped mb-0">
-              <thead><tr><th>Rider</th><th>Actius</th></tr></thead>
-              <tbody>
-                <?php foreach ($ia_diag['dup_actius'] as $r): ?>
-                  <tr><td><?= (int)$r['rider_id'] ?></td><td><?= (int)$r['actius'] ?></td></tr>
-                <?php endforeach; ?>
-              </tbody>
-            </table>
-          <?php else: ?>
-            <div class="text-success small">Cap duplicat actiu 🎉</div>
-          <?php endif; ?>
+      <?php if (!empty($ia_log)): ?>
+      <div class="card text-bg-dark my-2">
+        <div class="card-body py-2">
+          <div class="fw-lighter mb-1">Log d’operacions</div>
+          <pre class="small mb-0"><?= htmlspecialchars(implode("\n", $ia_log)) ?></pre>
         </div>
       </div>
-    </div>
+      <?php endif; ?>
 
-    <div class="col-md-4">
-      <div class="card text-bg-dark h-100">
-        <div class="card-body">
-          <div class="mb-2">Jobs finished sense run</div>
-          <?php if ($ia_diag['finished_without_run']): ?>
-            <div class="small text-muted mb-2">Mostrant fins a 200</div>
-            <table class="table table-sm table-dark table-striped mb-0">
-              <thead><tr><th>ID</th><th>Rider</th><th>Status</th><th>Fi</th></tr></thead>
-              <tbody>
-              <?php foreach ($ia_diag['finished_without_run'] as $j): ?>
-                <tr>
-                  <td><?= (int)$j['id'] ?></td>
-                  <td><?= (int)$j['rider_id'] ?></td>
-                  <td><?= htmlspecialchars($j['status']) ?></td>
-                  <td><?= htmlspecialchars(dt_eu($j['finished_at'] ?? '')) ?></td>
-                </tr>
-              <?php endforeach; ?>
-              </tbody>
-            </table>
-          <?php else: ?>
-            <div class="text-success small">Cap cas 🎉</div>
-          <?php endif; ?>
+      <?php if (!empty($ia_diag)): ?>
+      <div class="row g-3 my-2 fw-lighter">
+        <div class="col-md-4">
+          <div class="card text-bg-dark h-100">
+            <div class="card-body">
+              <div class="mb-2">Duplicats actius per rider</div>
+              <?php if ($ia_diag['dup_actius']): ?>
+                <table class="table table-sm table-dark table-striped mb-0">
+                  <thead><tr><th>Rider</th><th>Actius</th></tr></thead>
+                  <tbody>
+                    <?php foreach ($ia_diag['dup_actius'] as $r): ?>
+                      <tr><td><?= (int)$r['rider_id'] ?></td><td><?= (int)$r['actius'] ?></td></tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              <?php else: ?>
+                <div class="text-success small">Cap duplicat actiu 🎉</div>
+              <?php endif; ?>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card text-bg-dark h-100">
+            <div class="card-body">
+              <div class="mb-2">Jobs finished sense run</div>
+              <?php if ($ia_diag['finished_without_run']): ?>
+                <div class="small text-muted mb-2">Mostrant fins a 200</div>
+                <table class="table table-sm table-dark table-striped mb-0">
+                  <thead><tr><th>ID</th><th>Rider</th><th>Status</th><th>Fi</th></tr></thead>
+                  <tbody>
+                  <?php foreach ($ia_diag['finished_without_run'] as $j): ?>
+                    <tr>
+                      <td><?= (int)$j['id'] ?></td>
+                      <td><?= (int)$j['rider_id'] ?></td>
+                      <td><?= htmlspecialchars($j['status']) ?></td>
+                      <td><?= htmlspecialchars(dt_eu($j['finished_at'] ?? '')) ?></td>
+                    </tr>
+                  <?php endforeach; ?>
+                  </tbody>
+                </table>
+              <?php else: ?>
+                <div class="text-success small">Cap cas 🎉</div>
+              <?php endif; ?>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card text-bg-dark h-100">
+            <div class="card-body">
+              <div class="mb-2">Runs orfes</div>
+              <?php if ($ia_diag['runs_orfes']): ?>
+                <div class="small text-muted mb-2">Mostrant fins a 200</div>
+                <table class="table table-sm table-dark table-striped mb-0">
+                  <thead><tr><th>ID</th><th>Rider</th><th>Inici</th><th>Status</th></tr></thead>
+                  <tbody>
+                  <?php foreach ($ia_diag['runs_orfes'] as $r): ?>
+                    <tr>
+                      <td><?= (int)$r['id'] ?></td>
+                      <td><?= (int)$r['rider_id'] ?></td>
+                      <td><?= htmlspecialchars(dt_eu($r['started_at'] ?? '')) ?></td>
+                      <td><?= htmlspecialchars($r['status'] ?? '') ?></td>
+                    </tr>
+                  <?php endforeach; ?>
+                  </tbody>
+                </table>
+              <?php else: ?>
+                <div class="text-success small">Cap run orfe 🎉</div>
+              <?php endif; ?>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="col-md-4">
-      <div class="card text-bg-dark h-100">
-        <div class="card-body">
-          <div class="mb-2">Runs orfes</div>
-          <?php if ($ia_diag['runs_orfes']): ?>
-            <div class="small text-muted mb-2">Mostrant fins a 200</div>
-            <table class="table table-sm table-dark table-striped mb-0">
-              <thead><tr><th>ID</th><th>Rider</th><th>Inici</th><th>Status</th></tr></thead>
-              <tbody>
-              <?php foreach ($ia_diag['runs_orfes'] as $r): ?>
-                <tr>
-                  <td><?= (int)$r['id'] ?></td>
-                  <td><?= (int)$r['rider_id'] ?></td>
-                  <td><?= htmlspecialchars(dt_eu($r['started_at'] ?? '')) ?></td>
-                  <td><?= htmlspecialchars($r['status'] ?? '') ?></td>
-                </tr>
-              <?php endforeach; ?>
-              </tbody>
-            </table>
-          <?php else: ?>
-            <div class="text-success small">Cap run orfe 🎉</div>
-          <?php endif; ?>
-        </div>
-      </div>
-    </div>
-  </div>
-<?php endif; ?>
-      
-     
+      <?php endif; ?> 
     </div>
   </div>
 </div>

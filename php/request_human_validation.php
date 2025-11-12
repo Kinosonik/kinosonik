@@ -103,7 +103,7 @@ try {
   }
 
   // Throttling: si n'hi ha una de recent (< THROTTLE_HOURS)
-  /*
+  
   if ($lastReq !== '' && $lastReq !== '0000-00-00 00:00:00') {
     try {
       $last = new DateTimeImmutable($lastReq, new DateTimeZone('UTC'));
@@ -123,7 +123,7 @@ try {
       // si falla el parseig, no apliquem throttling
     }
   }
-*/
+  
   // Idempotent: si ja estava marcada, retornem OK amb la data existent
   if ($already) {
     $whenLocal = null;

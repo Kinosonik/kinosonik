@@ -72,7 +72,7 @@ try {
      data-last="<?= (int)$last ?>"
      data-interval="<?= (int)$INTERVAL_SEC ?>"
      data-endpoint="<?= htmlspecialchars((rtrim((string)(defined('BASE_PATH') ? BASE_PATH : '/'), '/')).'/php/ia_status.php?fmt=json', ENT_QUOTES, 'UTF-8') ?>">
-  <i class="bi bi-robot"></i><?= htmlspecialchars($whenLocal, ENT_QUOTES, 'UTF-8') ?> <i class="bi bi-clock-history"></i><span style="width: 20px; text-align:center;" id="iaRemain">…</span>
+  <i class="bi bi-robot me-1"></i><?= htmlspecialchars($whenLocal, ENT_QUOTES, 'UTF-8') ?> <i class="bi bi-clock-history ms-1"></i><span style="width: 20px; text-align:center;" id="iaRemain">…</span>
 </div>
 
 <script>
