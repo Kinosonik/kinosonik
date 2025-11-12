@@ -1,6 +1,7 @@
 <?php
 // php/ia_extract_heuristics.php
 declare(strict_types=1);
+require_once __DIR__ . '/ai_utils.php';
 
 /* ───────── Classificador ràpid: és un rider? (0..100) ───────── */
 function rider_confidence(string $norm): int {

@@ -17,6 +17,10 @@ return [
     'invalid_phone'       => "El teléfono no es válido. Usa el formato internacional, p. ej. +34656765467.",
     'policy_required'     => "Debes aceptar la política de privacidad para poder registrarte.",
     'email_in_use'        => "Ya existe una cuenta con ese correo electrónico.",
+    'token_expired' => 'El enlace ha caducado. Solicita uno nuevo desde tu perfil.',
+    'verify_failed' => 'Error del sistema. Contacta con soporte si el problema persiste.',
+    'verify_rate_limit' => 'Demasiados intentos de verificación. Espera unos minutos.',
+
 
     // Recuperación / verificación
     'token_invalid'       => "El enlace no es válido o ya se ha utilizado.",
@@ -101,5 +105,7 @@ return [
 
     'role_tecnic_on'   => 'Rol de técnico activado correctamente. Ya puedes subir y gestionar riders.',
     'role_tecnic_off'  => 'Rol de técnico desactivado y riders eliminados correctamente.',
+    'verify_ok' => 'Correo verificado correctamente. Bienvenido/a a Kinosonik Riders.',
+    'email_verified' => 'Cuenta activada con éxito. Ya puedes usar todas las funcionalidades.',
   ],
 ];

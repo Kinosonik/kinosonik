@@ -9,6 +9,10 @@ return [
     'login_required'      => "Has d'iniciar sessió per accedir a aquesta secció.",
     'email_not_verified'  => "Has de verificar el teu correu abans d'iniciar sessió.",
     'too_many_attempts'   => "Massa intents. Torna més tard.",
+    'token_invalid' => 'Token de verificació invàlid o ja utilitzat.',
+    'token_expired' => 'L\'enllaç ha caducat. Sol·licita\'n un de nou des del teu perfil.',
+    'verify_failed' => 'Error de sistema. Contacta amb suport si el problema persisteix.',
+    'verify_rate_limit' => 'Massa intents de verificació. Espera uns minuts.',
 
     // Registre
     'missing_fields'      => "Falten camps obligatoris al formulari.",
@@ -102,5 +106,8 @@ return [
 
     'role_tecnic_on'   => 'Rol de tècnic activat correctament. Ja pots pujar i gestionar riders.',
     'role_tecnic_off'  => 'Rol de tècnic desactivat i riders eliminats correctament.',
+
+    'verify_ok' => 'Correu verificat correctament! Benvingut/da a Kinosonik Riders.',
+    'email_verified' => 'Compte activat amb èxit. Ja pots utilitzar totes les funcionalitats.',
   ],
 ];

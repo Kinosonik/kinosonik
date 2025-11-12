@@ -1,18 +1,13 @@
 <?php declare(strict_types=1);
 umask(0002);
 // php/cron/ia_worker.php — processa ia_jobs → escriu ia_runs + logs + state file, amb reintents
+// VERSIÓ MILLORADA v2.0
 
 require_once dirname(__DIR__) . '/preload.php';
 require_once dirname(__DIR__) . '/config.php';
 require_once dirname(__DIR__) . '/db.php';
 require_once dirname(__DIR__) . '/r2.php';
 require_once dirname(__DIR__) . '/ia_extract_heuristics.php';
-
-/**
- * IMPORTANT:
- *  - umask(0002) perquè TOTS els fitxers nous siguin rw per user i grup (p.ex. www-data).
- *  - mai no tanquem permisos a 0700/0600; directoris 02775 i fitxers 0644/0664 (excepte /tmp state 0600).
- */
 
 date_default_timezone_set('Europe/Madrid');
 
@@ -21,12 +16,10 @@ $BATCH = 5; // quants jobs per tick
 
 /* --------------------------- Utils (logs) --------------------------- */
 
-/** Log CLI curt: cap a php-error.log/syslog */
 function ks_log_cli(string $msg): void {
   error_log('[ia_worker] ' . $msg);
 }
 
-/** Path del log per job sota KS_SECURE_LOG_DIR/ia */
 function job_log_path(string $job_uid): string {
   $base = defined('KS_SECURE_LOG_DIR') ? rtrim((string)KS_SECURE_LOG_DIR, '/') : '/var/config/logs/riders';
   $dir  = $base . '/ia';
@@ -40,7 +33,6 @@ function job_log_path(string $job_uid): string {
   return $dir . '/run_' . $job_uid . '.log';
 }
 
-/** Escriu línia amb timestamp ISO local al log de job */
 function log_line(string $path, string $line): void {
   $ts = (new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid')))->format('c');
   @file_put_contents($path, '[' . $ts . '] ' . $line . PHP_EOL, FILE_APPEND);
@@ -50,7 +42,6 @@ function log_line(string $path, string $line): void {
   }
 }
 
-/** Worker log (JSON per línia) */
 function wlog(string $event, array $extra = [], string $lvl = 'info'): void {
   static $path = null;
   if ($path === null) {
@@ -70,7 +61,7 @@ function wlog(string $event, array $extra = [], string $lvl = 'info'): void {
     'event' => $event,
     'pid'   => getmypid(),
     'host'  => php_uname('n'),
-    'ver'   => 'ia-worker-0.3',
+    'ver'   => 'ia-worker-2.0',
   ];
   $line = json_encode($base + $extra, JSON_UNESCAPED_SLASHES);
   @error_log($line . PHP_EOL, 3, $path);
@@ -82,10 +73,6 @@ function state_file(string $job_uid): string {
   return sys_get_temp_dir() . "/ai-$job_uid.json";
 }
 
-/**
- * Merge d’estat + append a logs. Escriu també ts/ts_iso per TTL/UX.
- * Accepta clau especial 'log' (string) per fer append de línia.
- */
 function put_state(string $job_uid, array $patch): void {
   $file = state_file($job_uid);
   $cur  = is_file($file) ? (json_decode((string)@file_get_contents($file), true) ?: []) : [];
@@ -99,13 +86,9 @@ function put_state(string $job_uid, array $patch): void {
     'ts_iso' => (new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid')))->format('c'),
   ]);
   @file_put_contents($file, json_encode($new, JSON_UNESCAPED_UNICODE), LOCK_EX);
-  @chmod($file, 0600); // state privat
+  @chmod($file, 0600);
 }
 
-
-/**
- * Neteja segura de fitxers temporals.
- */
 function safe_unlink(?string $path): void {
   if (!$path) return;
   if (is_file($path)) { @unlink($path); }
@@ -132,35 +115,99 @@ function finish_job(PDO $pdo, int $id, string $final, ?string $err = null): void
   $st->execute([':st' => $final, ':err' => $err, ':id' => $id]);
 }
 
-function r2_download_to_tmp(string $objectKey): array {
-  $cli    = r2_client();
+/* ----------------------- R2 Download amb retry ---------------------- */
+
+function r2_download_to_tmp(string $objectKey, int $maxRetries = 3): array {
+  $cli = r2_client();
   $bucket = r2_bucket();
-
-  $resp = $cli->getObject(['Bucket' => $bucket, 'Key' => $objectKey]);
-
-  $tmpPdf = tempnam(sys_get_temp_dir(), 'rider_');
-  // Converteix Body a string; el SDK pot retornar resource/Stream
-  $body = (string)$resp['Body'];
-  file_put_contents($tmpPdf, $body);
-  @chmod($tmpPdf, 0600);
-
-  return [$tmpPdf, strlen($body)];
+  
+  $lastError = null;
+  for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+    try {
+      // ✨ Validació d'existència
+      $cli->headObject(['Bucket' => $bucket, 'Key' => $objectKey]);
+      
+      $resp = $cli->getObject(['Bucket' => $bucket, 'Key' => $objectKey]);
+      $body = (string)$resp['Body'];
+      
+      if (empty($body)) {
+        throw new RuntimeException('empty_object');
+      }
+      
+      $tmpPdf = tempnam(sys_get_temp_dir(), 'rider_');
+      file_put_contents($tmpPdf, $body);
+      @chmod($tmpPdf, 0600);
+      
+      return [$tmpPdf, strlen($body)];
+      
+    } catch (Throwable $e) {
+      $lastError = $e->getMessage();
+      if ($attempt < $maxRetries) {
+        usleep(1000000 * $attempt); // 1s, 2s, 3s backoff
+        continue;
+      }
+    }
+  }
+  
+  throw new RuntimeException("r2_download_failed after $maxRetries attempts: $lastError");
 }
 
-function pdf_to_text_paths(string $pdfPath): array {
-  $out  = $pdfPath . '.txt';
-  // Ruta absoluta o fallback a PATH. Flags: -layout, -nopgbrk, UTF-8.
+/* ----------------------- PDF to Text amb timeout -------------------- */
+
+function pdf_to_text_paths(string $pdfPath, int $timeout = 30): array {
+  $out = $pdfPath . '.txt';
   $bin = is_file('/usr/bin/pdftotext') ? '/usr/bin/pdftotext' : 'pdftotext';
-  $cmd = sprintf(
-    "%s -enc UTF-8 -layout -nopgbrk -q %s %s 2>&1",
-    $bin,
-    escapeshellarg($pdfPath),
-    escapeshellarg($out)
+  
+  // ✨ proc_open amb timeout
+  $descriptors = [
+    0 => ['pipe', 'r'],
+    1 => ['pipe', 'w'],
+    2 => ['pipe', 'w']
+  ];
+  
+  $start = time();
+  $proc = proc_open(
+    [$bin, '-enc', 'UTF-8', '-layout', '-nopgbrk', '-q', $pdfPath, $out],
+    $descriptors,
+    $pipes
   );
-  exec($cmd, $lines, $rc);
-  if ($rc !== 0 || !is_file($out)) {
-    throw new RuntimeException('pdftotext_failed: ' . implode("\n", $lines));
+  
+  if (!is_resource($proc)) {
+    throw new RuntimeException('pdftotext_proc_failed');
   }
+  
+  fclose($pipes[0]);
+  stream_set_blocking($pipes[1], false);
+  stream_set_blocking($pipes[2], false);
+  
+  $stdout = '';
+  $stderr = '';
+  
+  while (time() - $start < $timeout) {
+    $status = proc_get_status($proc);
+    if (!$status['running']) break;
+    
+    $stdout .= stream_get_contents($pipes[1]) ?: '';
+    $stderr .= stream_get_contents($pipes[2]) ?: '';
+    usleep(100000); // 0.1s
+  }
+  
+  $status = proc_get_status($proc);
+  if ($status['running']) {
+    // ⚠️ Timeout! Kill process
+    proc_terminate($proc, 9);
+    proc_close($proc);
+    throw new RuntimeException("pdftotext_timeout after {$timeout}s");
+  }
+  
+  fclose($pipes[1]);
+  fclose($pipes[2]);
+  $rc = proc_close($proc);
+  
+  if ($rc !== 0 || !is_file($out)) {
+    throw new RuntimeException('pdftotext_failed: ' . ($stderr ?: 'unknown error'));
+  }
+  
   $txt = file_get_contents($out) ?: '';
   return [$out, $txt];
 }
@@ -172,7 +219,7 @@ try {
   $processed = 0;
   wlog('tick_start');
 
-  // lock global per evitar múltiples workers en paral·lel (si no ho vols, elimina-ho)
+  // ✨ Lock global (si vols múltiples workers, canvia a lock per rider)
   $lk = $pdo->query("SELECT GET_LOCK('ia_worker_lock', 1)")->fetchColumn();
   if ((string)$lk !== '1') {
     ks_log_cli('skip: no lock');
@@ -180,7 +227,26 @@ try {
     exit(0);
   }
 
-  // Jobs en cua amb intents disponibles
+  // ✨ Neteja state files > 24h
+  try {
+    $tmpDir = sys_get_temp_dir();
+    $files = glob($tmpDir . '/ai-*.json') ?: [];
+    $now = time();
+    $cleaned = 0;
+    foreach ($files as $f) {
+      if (($now - filemtime($f)) > 86400) {
+        @unlink($f);
+        $cleaned++;
+      }
+    }
+    if ($cleaned > 0) {
+      wlog('state_cleanup', ['cleaned' => $cleaned]);
+    }
+  } catch (Throwable $e) {
+    wlog('cleanup_failed', ['error' => $e->getMessage()], 'warn');
+  }
+
+  // Jobs en cua
   $st = $pdo->prepare(
     "SELECT id, rider_id, job_uid, attempts, max_attempts, payload_json
        FROM ia_jobs
@@ -201,7 +267,7 @@ try {
     $attempts = (int)$J['attempts'];
     $maxAtt   = (int)$J['max_attempts'];
 
-    // Evita més d’un actiu per rider
+    // Evita més d'un actiu per rider
     $chk = $pdo->prepare("SELECT COUNT(*) FROM ia_jobs WHERE rider_id=? AND status IN ('queued','running')");
     $chk->execute([$rid]);
     if ((int)$chk->fetchColumn() > 1) {
@@ -217,16 +283,20 @@ try {
       continue;
     }
 
-    // Registre de log per job
     $log = job_log_path($job_uid);
     wlog('job_start', ['job_id' => $id, 'rider_id' => $rid, 'job_uid' => $job_uid, 'attempts' => $attempts]);
     log_line($log, "JOB START id=$id rider=$rid");
 
-    // Estat inicial per a la UI (si ai_start ja en va crear un, ho completem)
     put_state($job_uid, ['pct'=>5, 'stage'=>'Validant rider…', 'log'=>'Worker engegat']);
 
-    // timestamps locals
-    $startedAt  = (new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid')))->format('Y-m-d H:i:s');
+    $startedAt = (new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid')))->format('Y-m-d H:i:s');
+    
+    // ✨ Límit de memòria per job
+    $memLimit = ini_get('memory_limit');
+    ini_set('memory_limit', '512M');
+    
+    $tmpPdf = null;
+    $txtPath = null;
 
     try {
       /* -----------------------------------------
@@ -239,75 +309,81 @@ try {
       put_state($job_uid, [
         'pct'       => 5,
         'stage'     => 'Validació de rider…',
-        'log'       => 'Worker engegat',
+        'log'       => 'Verificant estat',
         'uid'       => (int)($r['ID_Usuari'] ?? 0),
         'rider_uid' => (string)($r['Rider_UID'] ?? ''),
       ]);
 
       if (!$r) { throw new RuntimeException('rider_not_found'); }
+      
       $estat = strtolower((string)($r['Estat_Segell'] ?? ''));
       if ($estat === 'validat' || $estat === 'caducat') {
         throw new RuntimeException('rider_locked');
       }
+      
       $objectKey = trim((string)($r['Object_Key'] ?? ''));
       if ($objectKey === '') { throw new RuntimeException('no_object_key'); }
 
       /* -----------------------------------------
-         2) Baixada & extracció de text (camí únic)
+         2) Baixada amb validació de mida
       ------------------------------------------*/
       put_state($job_uid, ['pct'=>20, 'stage'=>'Downloading PDF…', 'log'=>'R2 getObject']);
       [$tmpPdf, $bytes] = r2_download_to_tmp($objectKey);
+      
+      // ✨ Validació de mida
+      $maxSize = 50 * 1024 * 1024; // 50MB
+      if ($bytes > $maxSize) {
+        throw new RuntimeException("pdf_too_large: {$bytes} bytes (max {$maxSize})");
+      }
+      
       log_line($log, "downloaded: $objectKey -> $tmpPdf ($bytes bytes)");
 
-      put_state($job_uid, ['pct'=>50, 'stage'=>'Extraient text…', 'log'=>'pdftotext']);
-      [$txtPath, $plain] = pdf_to_text_paths($tmpPdf);
+      /* -----------------------------------------
+         3) Extracció amb timeout
+      ------------------------------------------*/
+      put_state($job_uid, ['pct'=>50, 'stage'=>'Extraient text…', 'log'=>'pdftotext (max 30s)']);
+      [$txtPath, $plain] = pdf_to_text_paths($tmpPdf, 30);
       $chars = mb_strlen($plain, 'UTF-8');
       log_line($log, "extracted: $txtPath ($chars chars)");
 
       /* -----------------------------------------
-        3) Heurístiques i scoring (sense pre-score)
+         4) Heurístiques i scoring
       ------------------------------------------*/
-      put_state($job_uid, ['pct'=>80, 'stage'=>'Puntuant…', 'log'=>'scoring v0']);
-      $txt    = $plain;                         // usem el text extret
-      $heu    = run_heuristics($txt, $tmpPdf);  // passa el text i el PDF per si cal mirar metadades
-      $score  = (int)$heu['score'];
+      put_state($job_uid, ['pct'=>80, 'stage'=>'Puntuant…', 'log'=>'scoring v2']);
+      $heu = run_heuristics($plain, $tmpPdf);
+      $score = (int)$heu['score'];
       $comments = isset($heu['comments']) && is_array($heu['comments']) ? $heu['comments'] : [];
       $suggestion = isset($heu['suggestion_block']) && is_string($heu['suggestion_block']) ? $heu['suggestion_block'] : null;
       $status = 'ok';
 
-      // Si el text extret és buit, marquem la regla i reduïm score base
       if ($chars === 0) {
         $heu['rules']['text_extracted'] = false;
-        if ($score > 60) $score = 50; // penalització bàsica
+        if ($score > 60) $score = 50;
       }
 
-      // Resum més útil per a llistats
       $missing = array_keys(array_filter($heu['rules'] ?? [], fn($v) => $v === false));
       $summaryParts = ['Anàlisi heurístic'];
       if (!empty($missing)) {
         $summaryParts[] = 'mancances: ' . implode(', ', $missing);
       }
       $summaryParts[] = "score=$score";
-      // afegim top-2 comentaris, si n’hi ha
       if (!empty($comments)) {
         $top2 = array_slice($comments, 0, 2);
         $summaryParts[] = 'notes: ' . implode(' | ', $top2);
       }
       $summary = implode(' · ', $summaryParts);
 
-      // JSON de detalls: no escapem slashes per mantenir URLs netes
       $details = json_encode($heu, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-      // Exposem a l’state file el que la UI pot mostrar en “Resultat IA”
       $statePatch = ['pct'=>92, 'stage'=>'Generant resum…', 'score'=>$score];
       if (!empty($comments))   $statePatch['comments'] = $comments;
-      if (!empty($suggestion)) $statePatch['suggestion'] = mb_substr($suggestion, 0, 4000, 'UTF-8'); // seguretat
+      if (!empty($suggestion)) $statePatch['suggestion'] = mb_substr($suggestion, 0, 4000, 'UTF-8');
       put_state($job_uid, $statePatch);
 
       $finishedAt = (new DateTimeImmutable('now', new DateTimeZone('Europe/Madrid')))->format('Y-m-d H:i:s');
 
       /* -----------------------------------------
-         4) Persistir run + UPDATE del Rider
+         5) Persistir run
       ------------------------------------------*/
       $ins = $pdo->prepare(
         "INSERT INTO ia_runs
@@ -322,34 +398,66 @@ try {
         ':logp'  => $log, ':err' => null, ':sum' => $summary, ':det' => $details
       ]);
 
-      foreach ([$tmpPdf ?? null, $txtPath ?? null] as $f) {
-        if ($f && is_file($f)) @unlink($f);
-      }
-
-      // ⬇️ El que necessita la UI: guardar Valoracio i Data_IA; deixar segell en 'pendent'
-      $pdo->prepare("
-        UPDATE Riders
-           SET Valoracio=:v, Estat_Segell='pendent', Data_Publicacio=NULL, Data_IA=NOW()
-         WHERE ID_Rider=:rid
-         LIMIT 1
-      ")->execute([':v' => $score, ':rid' => $rid]);
+      // ✨ Neteja temporals
+      safe_unlink($tmpPdf);
+      safe_unlink($txtPath);
 
       /* -----------------------------------------
-         5) Estat final UI + marcar job com OK
+         6) Desa resultat: valoració i estat 'pendent'
       ------------------------------------------*/
-      put_state($job_uid, ['pct'=>100, 'stage'=>'Fet', 'done'=>true, 'score'=>$score, 'log'=>'Job completat']);
-      wlog('job_done', ['job_id' => $id, 'rider_id' => $rid, 'status' => 'ok']);
+      $nouEstat = 'pendent'; // default
+      $dataPublicacio = null;
+
+      $sql = "UPDATE Riders 
+              SET Valoracio = :v, 
+                  Estat_Segell = :estat,
+                  Data_Publicacio = " . ($dataPublicacio ?: 'NULL') . ",
+                  Data_IA = NOW()
+              WHERE ID_Rider = :rid
+              LIMIT 1";
+
+      $pdo->prepare($sql)->execute([
+        ':v' => $score, 
+        ':estat' => $nouEstat,
+        ':rid' => $rid
+      ]);
+
+      log_line($log, "Rider updated: estat=$nouEstat score=$score");
+
+      /* -----------------------------------------
+         7) Estat final UI + marcar job OK
+      ------------------------------------------*/
+      put_state($job_uid, [
+        'pct'=>100, 
+        'stage'=>'Fet', 
+        'done'=>true, 
+        'score'=>$score,
+        'estat'=>$nouEstat,
+        'log'=>'Job completat'
+      ]);
+      
+      wlog('job_done', ['job_id' => $id, 'rider_id' => $rid, 'status' => 'ok', 'score' => $score, 'estat' => $nouEstat]);
       finish_job($pdo, $id, 'ok', null);
       $processed++;
-      log_line($log, "JOB DONE status=ok score=$score");
+      log_line($log, "JOB DONE status=ok score=$score estat=$nouEstat");
       
     } catch (Throwable $e) {
-      // incrementa intents
+      // Neteja temporals en error
+      safe_unlink($tmpPdf);
+      safe_unlink($txtPath);
+      
       $up = $pdo->prepare("UPDATE ia_jobs SET attempts=attempts+1, error_msg=:m WHERE id=:id");
       $up->execute([':m' => $e->getMessage(), ':id' => $id]);
       $attempts++;
 
-      put_state($job_uid, ['pct'=>100, 'stage'=>'Error', 'done'=>true, 'error'=>$e->getMessage(), 'log'=>'ERROR: '.$e->getMessage()]);
+      put_state($job_uid, [
+        'pct'=>100, 
+        'stage'=>'Error', 
+        'done'=>true, 
+        'error'=>$e->getMessage(), 
+        'log'=>'ERROR: '.$e->getMessage()
+      ]);
+      
       wlog('job_error', [
         'job_id' => $id,
         'rider_id' => $rid,
@@ -363,23 +471,38 @@ try {
         $processed++;
         log_line($log, "JOB FAIL (final): " . $e->getMessage());
       } else {
-        $bof = min(300, 15 * $attempts); // fins a 5 min (només informatiu)
+        $bof = min(300, 15 * $attempts);
         log_line($log, "JOB FAIL: " . $e->getMessage() . " — retry in ~{$bof}s");
         usleep(200_000);
         $pdo->prepare("UPDATE ia_jobs SET status='queued' WHERE id=?")->execute([$id]);
-        // si hi havia un tmp pdf, neteja (coherent amb el nom actual)
-        if (isset($tmpPdf)) safe_unlink($tmpPdf);
       }
+    } finally {
+      // ✨ Restaura límit de memòria
+      ini_set('memory_limit', $memLimit);
     }
+  }
+
+  // ✨ Health check
+  try {
+    $healthFile = sys_get_temp_dir() . '/ia_worker_health.json';
+    file_put_contents($healthFile, json_encode([
+      'last_run' => time(),
+      'last_run_iso' => date('c'),
+      'processed' => $processed,
+      'pid' => getmypid(),
+      'version' => 'ia-worker-2.0'
+    ]));
+  } catch (Throwable $e) {
+    wlog('health_check_failed', ['error' => $e->getMessage()], 'warn');
   }
 
   $pdo->query("SELECT RELEASE_LOCK('ia_worker_lock')");
   $dur = (int)round((microtime(true) - $t0) * 1000);
-  $rss = (int)round(memory_get_usage(true) / 1048576); // MB
+  $rss = (int)round(memory_get_usage(true) / 1048576);
   wlog('tick_end', ['processed' => $processed, 'duration_ms' => $dur, 'rss_mb' => $rss]);
 
 } catch (Throwable $e) {
-  wlog('fatal', ['message' => $e->getMessage()], 'error');
+  wlog('fatal', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()], 'error');
   ks_log_cli('fatal: ' . $e->getMessage());
   try { $pdo->query("SELECT RELEASE_LOCK('ia_worker_lock')"); } catch (Throwable $ignored) {}
   exit(1);

@@ -2,6 +2,34 @@
 declare(strict_types=1);
 date_default_timezone_set('Europe/Madrid');
 
+/* ---------------------------------------------------------
+ * Sessió segura global (carregada des de preload.php)
+ * --------------------------------------------------------- */
+if (session_status() === PHP_SESSION_NONE) {
+    try {
+        // Config segura...
+        ini_set('session.cookie_httponly', '1');
+        ini_set('session.use_strict_mode', '1');
+        ini_set('session.cookie_samesite', 'Lax');
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            ini_set('session.cookie_secure', '1');
+        }
+
+        session_name('KSSESSID');
+
+        if (!session_start()) {
+            error_log('[Riders] Error: no s’ha pogut iniciar la sessió (path o permisos).');
+        }
+
+        if (!isset($_SESSION['initiated'])) {
+            session_regenerate_id(true);
+            $_SESSION['initiated'] = true;
+        }
+    } catch (Throwable $e) {
+        error_log('[Riders] Exception iniciant sessió: ' . $e->getMessage());
+    }
+}
+
 // Marca que l'app s'ha carregat (per als includes amb guarda 403)
 if (!defined('APP_LOADED')) {
   define('APP_LOADED', true);

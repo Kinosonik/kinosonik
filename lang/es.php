@@ -108,11 +108,11 @@ return [
 
   'index.demo.titol'         => 'Prueba la IA de tu rider, gratis.',
   'index.demo.subtitol'      => 'Arrastra o selecciona tu rider y obtén una valoración inmediata',
-  'index.demo.label_upload'  => 'Sube tu rider en PDF (máx. 20 MB)',
+  'index.demo.label_upload'  => 'Sube tu rider en PDF (máx. 10 MB)',
   'index.demo.btn_analitza'  => 'Analizar ahora',
   'index.demo.resultat'      => 'Resultado del análisis',
   'index.demo.analitzant'    => 'Analizando tu rider...',
-  'index.demo.version' => 'Versión heurística local.<br />Regístrate para acceder al análisis completo con IA.',
+  'index.demo.version' => 'Versión heurística local. Regístrate para acceder al análisis completo con IA.',
   'index.demo.error'         => 'Error en el análisis',
   'index.demo.tancar'        => 'Cerrar',
   'index.demo.ratelimit'     => 'Has hecho demasiadas pruebas. Inténtalo de nuevo en unos minutos.',
@@ -202,6 +202,15 @@ return [
   'register.must_accept_policy'=> "Debes aceptar la política de privacidad.",
   'register.submit'            => "Registrarse",
   'loading.processing' => 'Procesando…',
+
+  'register.show_password' => 'Mostrar contraseña',
+  'register.hide_password' => 'Ocultar contraseña',
+  'register.passwords_match' => 'Las contraseñas coinciden',
+  'register.legal_note' => 'Tus datos serán tratados según nuestra política de privacidad.',
+  'required' => 'Obligatorio',
+  'disposable_email' => 'No se permiten correos temporales.',
+  'ip_rate_limit' => 'Demasiados registros desde esta IP.',
+
 
   // Genèrics
   'close'   => "Cerrar",

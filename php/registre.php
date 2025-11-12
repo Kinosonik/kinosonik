@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/php/preload.php';
-if (session_status() === PHP_SESSION_NONE) { session_start(); }
+// ✅ ELIMINAT: session_start() duplicat (ja està al preload)
 
 require_once __DIR__ . '/i18n.php';
 require_once __DIR__ . '/messages.php';
@@ -10,39 +10,49 @@ require_once __DIR__ . '/middleware.php';
 require_once __DIR__ . '/audit.php';
 require_once __DIR__ . '/db.php';
 
-// PDO
 $pdo = db();
 
-// Mètode obligat
 if (!is_post()) { http_response_code(405); exit; }
 
-// CSRF tolerant (redirigeix amb missatge, evita pàgina en blanc)
+// CSRF check
 $postCsrf = (string)($_POST['csrf'] ?? '');
 $sessCsrf = (string)($_SESSION['csrf'] ?? '');
 if ($postCsrf === '' || $sessCsrf === '' || !hash_equals($sessCsrf, $postCsrf)) {
   $_SESSION['login_modal'] = [
     'open'  => true,
-    'flash' => ['type' => 'danger', 'msg' => ($messages['error']['csrf'] ?? 'Sessió caducada. Torna-ho a provar.')]
+    'flash' => ['type' => 'danger', 'msg' => ($messages['error']['csrf'] ?? 'Sessió caducada.')]
   ];
   ks_set_login_modal_cookie($_SESSION['login_modal']);
   redirect_to('index.php', ['modal'=>'login','error'=>'csrf']);
 }
 
-/* Helpers */
+/* ✨ Helpers millorats */
 if (!function_exists('h')) {
   function h(?string $s): string { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 }
+
 function mask_email(?string $email): string {
   if (!$email) return '';
   [$user, $dom] = array_pad(explode('@', $email, 2), 2, '');
   if ($user === '') return (string)$email;
-  $u = mb_substr($user, 0, 2, 'UTF-8');
-  return $u . str_repeat('*', max(0, mb_strlen($user, 'UTF-8') - 2)) . '@' . $dom;
+  // ✨ Només 1 caràcter + màxim 5 estrelles
+  $u = mb_substr($user, 0, 1, 'UTF-8');
+  $stars = min(5, mb_strlen($user, 'UTF-8') - 1);
+  return $u . str_repeat('*', $stars) . '@' . $dom;
 }
+
 function real_client_ip(): string {
-  $h = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
-  if ($h !== '') { $parts = array_map('trim', explode(',', $h)); if ($parts) return $parts[0]; }
-  return $_SERVER['REMOTE_ADDR'] ?? '';
+  // ✨ Trusted proxies (afegeix Cloudflare IPs si cal)
+  $trustedProxies = ['127.0.0.1', '::1'];
+  $forwardedFor = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? '';
+  $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
+  
+  if ($forwardedFor !== '' && in_array($remoteAddr, $trustedProxies, true)) {
+    $ips = array_map('trim', explode(',', $forwardedFor));
+    return $ips[0] ?? $remoteAddr;
+  }
+  
+  return $remoteAddr;
 }
 
 /* Inputs */
@@ -55,82 +65,183 @@ $p1       = (string)($_POST['password']  ?? '');
 $p2       = (string)($_POST['password2'] ?? '');
 $politica = isset($_POST['politica']) ? 1 : 0;
 
-// Email des de $_POST i validació amb filter_var
 $emailPost = trim((string)($_POST['email'] ?? ''));
 $email     = $emailPost !== '' ? mb_strtolower($emailPost, 'UTF-8') : '';
 
-// Metadades
+// ✨ Honeypot anti-bot
+$honeypot = trim((string)($_POST['website'] ?? ''));
+if ($honeypot !== '') {
+    sleep(3); // Castiga el bot
+    error_log('[register] Bot detected: ' . real_client_ip());
+    redirect_to('index.php', ['modal'=>'login','error'=>'invalid_request']);
+}
+
 $politicaVersio = (string)($_POST['politica_versio'] ?? '');
-$consentAt      = gmdate('Y-m-d H:i:s'); // UTC
+$consentAt      = gmdate('Y-m-d H:i:s');
 $consentIP      = real_client_ip();
 $idioma         = normalize_lang((string)($_SESSION['lang'] ?? 'ca'));
 
-/* Return URL (opcional) */
 $returnRaw  = (string)($_POST['return'] ?? '');
-$returnUrl  = sanitize_return_url($returnRaw); // internament ja hauria de fer validacions
+$returnUrl  = sanitize_return_url($returnRaw);
 $withReturn = fn(array $p) => ($returnUrl !== '' ? $p + ['return' => $returnUrl] : $p);
 
 /* Validacions */
 $tipusAllow = ['tecnic','sala','productor'];
 
-// Camps obligatoris
 if ($nom==='' || $cognoms==='' || $telefon==='' || $email==='' || $p1==='' || $p2==='' || $tipus==='') {
   redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'missing_fields']));
 }
+
 // Email
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
   redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'invalid_email']));
 }
-// Tipus permès (i mai admin per via pública)
+
+// ✨ Emails desechables
+$disposableDomains = [
+    'tempmail.com', 'guerrillamail.com', '10minutemail.com',
+    'mailinator.com', 'throwaway.email', 'yopmail.com',
+    'maildrop.cc', 'temp-mail.org', 'getnada.com'
+];
+$emailDomain = strtolower(explode('@', $email)[1] ?? '');
+if (in_array($emailDomain, $disposableDomains, true)) {
+    redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'disposable_email']));
+}
+
+// Tipus
 if ($tipus === 'admin' || !in_array($tipus, $tipusAllow, true)) {
   redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'missing_fields']));
 }
+
 // Passwords
 if ($p1 !== $p2) {
   redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'password_mismatch']));
 }
+
+// ✨ Password policy (opcional: més estricta)
+// Actual: 8+ chars, 1 lletra, 1 número
 if (!preg_match('/^(?=.{8,})(?=.*[A-Za-z])(?=.*\d).+$/', $p1)) {
-  redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'weak_password']));
+    redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'weak_password']));
 }
-// Telèfon E.164
+// ✨ Opcional més estricta: 8+ chars, 1 upper, 1 lower, 1 digit, 1 special
+// if (!preg_match('/^(?=.{8,})(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).+$/', $p1)) {
+//     redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'weak_password']));
+// }
+
+// ✨ Telèfon: normalitza automàticament
+if (!str_starts_with($telefon, '+')) {
+    if (preg_match('/^(34|33|44|1)\d/', $telefon)) {
+        $telefon = '+' . $telefon;
+    } else {
+        // Assumeix Espanya
+        $telefon = '+34' . ltrim($telefon, '0');
+    }
+}
+
 if (!preg_match('/^\+[1-9][0-9]{6,14}$/', $telefon)) {
   redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'invalid_phone']));
 }
-// Política
+
 if ($politica !== 1) {
   redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'policy_required']));
 }
 
-/* Throttle registre */
-$key = hash('sha256', (string)$email . '|' . ($_SERVER['REMOTE_ADDR'] ?? ''));
-$now = time();
-$_SESSION['throttle'] = $_SESSION['throttle'] ?? [];
-$rec = $_SESSION['throttle'][$key] ?? ['fail' => 0, 'until' => 0];
+/* ✨ Rate limiting per IP (màxim 3 registres per hora) */
+$ip = real_client_ip();
+try {
+    $stmt = $pdo->prepare("
+        SELECT COUNT(*) FROM Usuaris 
+        WHERE Politica_Consentit_IP = ? 
+        AND Data_Alta_Usuari > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+    ");
+    $stmt->execute([$ip]);
+    $recentRegistrations = (int)$stmt->fetchColumn();
 
-if ($rec['until'] > $now) {
-  $_SESSION['login_modal'] = [
-    'open' => true,
-    'flash' => ['type' => 'danger', 'msg' => ($messages['error']['too_many_attempts'] ?? 'Massa intents. Torna més tard.')]
-  ];
-  ks_set_login_modal_cookie($_SESSION['login_modal']);
-  redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'too_many_attempts']));
+    if ($recentRegistrations >= 3) {
+        error_log("[register] IP rate limit: $ip");
+        redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'ip_rate_limit']));
+    }
+} catch (PDOException $e) {
+    error_log('[register] IP rate limit check failed: ' . $e->getMessage());
 }
-$throttle_fail = function() use (&$rec, $key) {
-  $rec['fail'] = ($rec['fail'] ?? 0) + 1;
-  if ($rec['fail'] >= 5) { $rec['until'] = time() + 15*60; $rec['fail'] = 0; }
-  $_SESSION['throttle'][$key] = $rec;
-};
-$throttle_ok = function() use ($key) {
-  if (isset($_SESSION['throttle'][$key])) { unset($_SESSION['throttle'][$key]); }
+
+/* ✨ Throttle per email (ara persistent a BD) */
+// Crea taula si no existeix
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS register_attempts (
+            throttle_key VARCHAR(64) PRIMARY KEY,
+            fail_count INT NOT NULL DEFAULT 0,
+            blocked_until INT NOT NULL DEFAULT 0,
+            last_attempt INT NOT NULL DEFAULT 0,
+            INDEX idx_blocked (blocked_until)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+} catch (PDOException $e) {
+    error_log('[register] throttle table creation failed: ' . $e->getMessage());
+}
+
+$throttleKey = hash('sha256', $email . '|' . $ip);
+$now = time();
+
+try {
+    $stmt = $pdo->prepare("
+        SELECT fail_count, blocked_until 
+        FROM register_attempts 
+        WHERE throttle_key = ? AND blocked_until >= ?
+    ");
+    $stmt->execute([$throttleKey, $now]);
+    $blocked = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($blocked) {
+        $waitSeconds = (int)$blocked['blocked_until'] - $now;
+        error_log("[register] Throttled: $email from $ip");
+        $_SESSION['login_modal'] = [
+            'open' => true,
+            'flash' => ['type' => 'danger', 'msg' => ($messages['error']['too_many_attempts'] ?? 'Massa intents.')]
+        ];
+        ks_set_login_modal_cookie($_SESSION['login_modal']);
+        redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'too_many_attempts']));
+    }
+} catch (PDOException $e) {
+    error_log('[register] Throttle check failed: ' . $e->getMessage());
+}
+
+$throttle_fail = function() use ($pdo, $throttleKey, $now) {
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO register_attempts (throttle_key, fail_count, last_attempt, blocked_until)
+            VALUES (?, 1, ?, 0)
+            ON DUPLICATE KEY UPDATE
+                fail_count = fail_count + 1,
+                last_attempt = VALUES(last_attempt),
+                blocked_until = CASE
+                    WHEN fail_count + 1 >= 5 THEN VALUES(last_attempt) + (15*60)
+                    ELSE blocked_until
+                END
+        ");
+        $stmt->execute([$throttleKey, $now]);
+    } catch (PDOException $e) {
+        error_log('[register] Throttle fail update: ' . $e->getMessage());
+    }
 };
 
-/* Hash password */
-$hash = defined('PASSWORD_ARGON2ID') ? password_hash($p1, PASSWORD_ARGON2ID) : password_hash($p1, PASSWORD_DEFAULT);
+$throttle_ok = function() use ($pdo, $throttleKey) {
+    try {
+        $stmt = $pdo->prepare("DELETE FROM register_attempts WHERE throttle_key = ?");
+        $stmt->execute([$throttleKey]);
+    } catch (PDOException $e) {
+        error_log('[register] Throttle reset: ' . $e->getMessage());
+    }
+};
 
-/* Token verificació (24h) */
+/* ✅ Password hash (consistent amb login) */
+$hash = password_hash($p1, PASSWORD_DEFAULT);
+
+/* Token verificació */
 $rawToken  = bin2hex(random_bytes(32));
 $tokenHash = hash('sha256', $rawToken);
-$expiry    = gmdate('Y-m-d H:i:s', time() + 86400); // UTC
+$expiry    = gmdate('Y-m-d H:i:s', time() + 86400);
 
 try {
   $stmt = $pdo->prepare("
@@ -164,38 +275,27 @@ try {
 
   $userId = (int)$pdo->lastInsertId();
 
-  // Política per rol 'sala': no publicar telèfon per defecte
+  // Sala: no publicar telèfon per defecte
   try {
     if ($tipus === 'sala') {
       $pdo->prepare("UPDATE Usuaris SET Publica_Telefon = 0 WHERE ID_Usuari = ?")->execute([$userId]);
     }
   } catch (Throwable $e) { /* silent */ }
 
-  // AUDIT registre OK (email emmascarat)
+  // Audit
   try {
     $parts  = explode('@', (string)$email, 2);
     $masked = mask_email((string)$email);
-    audit_admin(
-      $pdo,
-      $userId,
-      false,
-      'user_register_attempt',
-      null,
-      null,
-      'account',
-      [
+    audit_admin($pdo, $userId, false, 'user_register_attempt', null, null, 'account', [
         'email_masked' => $masked,
         'email_domain' => $parts[1] ?? '',
         'tipus'        => $tipus,
         'policy_ver'   => $politicaVersio,
         'consent_ip'   => $consentIP,
-      ],
-      'success',
-      null
-    );
+    ], 'success', null);
   } catch (Throwable $e) { /* silent */ }
 
-  // Enllaç de verificació
+  // ✨ Enllaç verificació
   if (function_exists('url')) {
     $verifyLink = url('php/verify_email.php?token=' . urlencode($rawToken));
   } else {
@@ -205,52 +305,45 @@ try {
     $verifyLink = rtrim("$scheme://$host$base", '/') . '/php/verify_email.php?token=' . urlencode($rawToken);
   }
 
-  // Mail (no bloquejant)
+  // ✨ Mail asíncron (encua a BD)
   try {
-    if (!class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
-      $va = __DIR__ . '/../vendor/autoload.php';
-      if (is_file($va)) { require_once $va; }
-    }
-    if (class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
-      $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
-      $mail->isSMTP();
-      $mail->CharSet  = 'UTF-8';
-      $mail->Encoding = 'quoted-printable';
-      $mail->isHTML(true);
-      $mail->Host       = $_ENV['SMTP_HOST']      ?? 'smtp.mail.me.com';
-      $mail->SMTPAuth   = true;
-      $mail->Username   = $_ENV['SMTP_USER']      ?? '';
-      $mail->Password   = $_ENV['SMTP_PASS']      ?? '';
-      $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-      $mail->Port       = (int)($_ENV['SMTP_PORT'] ?? 587);
-
-      $from     = $_ENV['SMTP_FROM'] ?: ($_ENV['SMTP_USER'] ?? '');
-      $fromName = $_ENV['SMTP_FROM_NAME'] ?? 'Kinosonik Riders';
-      $mail->setFrom($from, $fromName);
-      if (!empty($_ENV['SMTP_USER'])) { $mail->Sender = $_ENV['SMTP_USER']; }
-      $mail->addReplyTo($_ENV['SMTP_REPLYTO'] ?? $from, $fromName);
-      $mail->addAddress((string)$email);
-
-      $subject   = __('email.verify_subject')    ?: "Verifica el teu correu – Kinosonik Riders";
-      $bodyIntro = __('email.verify_body_intro') ?: "Per completar el registre, verifica el teu correu fent clic a l’enllaç (caduca en 24 hores):";
+      $subject   = __('email.verify_subject') ?: "Verifica el teu correu – Kinosonik Riders";
+      $bodyIntro = __('email.verify_body_intro') ?: "Per completar el registre, verifica el teu correu (caduca en 24h):";
       $safeNom   = h($nom);
+      $mailBody  = "<p>Hola, {$safeNom},</p><p>{$bodyIntro}</p><p><a href=\"{$verifyLink}\">{$verifyLink}</a></p>";
 
-      $mail->Subject = $subject;
-      $mail->Body    = "<p>Hola, {$safeNom},</p><p>{$bodyIntro}</p><p><a href=\"{$verifyLink}\">{$verifyLink}</a></p>";
+      // 1️⃣ Assegura que la taula existeix
+      $pdo->exec("
+          CREATE TABLE IF NOT EXISTS mail_queue (
+              id INT AUTO_INCREMENT PRIMARY KEY,
+              to_email VARCHAR(255),
+              subject VARCHAR(255),
+              body MEDIUMTEXT,
+              created_at DATETIME,
+              sent_at DATETIME NULL,
+              status ENUM('pending','sent','error') DEFAULT 'pending'
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      ");
 
-      try { $mail->send(); }
-      catch (Throwable $e) {
-        @file_put_contents('/tmp/riders_mail_fail.log', date('c')." EX: ".$e->getMessage()."\n", FILE_APPEND);
-      }
-    } else {
-      @file_put_contents('/tmp/riders_mail_fail.log', date('c')." PHPMailer no disponible\n", FILE_APPEND);
-    }
-  } catch (Throwable $e) { /* silent */ }
+      // 2️⃣ Inserta el correu a la cua
+      $stmt = $pdo->prepare("
+          INSERT INTO mail_queue (to_email, subject, body, created_at)
+          VALUES (?, ?, ?, NOW())
+      ");
+      $stmt->execute([$email, $subject, $mailBody]);
+      
+  } catch (PDOException $e) {
+      error_log('[register] Mail queue failed: ' . $e->getMessage());
+      $_SESSION['mail_warning'] = true;
+  }
 
-  // Flash d’èxit + modal login obert
+  // ✅ Log d’èxit (debug intern)
+  error_log("[register] User $email ($ip) registered OK");
+
+  // Flash
   $_SESSION['login_modal'] = [
     'open'  => true,
-    'flash' => ['type' => 'success', 'msg' => ($messages['success']['verify_sent'] ?? "T'hem enviat un correu per verificar el teu compte. Revisa la bústia.")],
+    'flash' => ['type' => 'success', 'msg' => ($messages['success']['verify_sent'] ?? "Check e-mail (24h max).")],
   ];
   ks_set_login_modal_cookie($_SESSION['login_modal']);
 
@@ -264,39 +357,28 @@ try {
   $errKey = ($code === '23000') ? 'email_in_use' : 'db_error';
 
   try {
-    audit_admin(
-      $pdo,
-      0,
-      false,
-      'user_register_attempt',
-      null,
-      null,
-      'account',
-      [
+    audit_admin($pdo, 0, false, 'user_register_attempt', null, null, 'account', [
         'email_masked' => $masked,
         'email_domain' => $parts[1] ?? '',
         'tipus'        => $tipus,
         'error_code'   => (string)$code,
-      ],
-      'error',
-      $errKey
-    );
+    ], 'error', $errKey);
   } catch (Throwable $e2) { /* silent */ }
 
   if ($code === '23000') {
     $_SESSION['login_modal'] = [
       'open'  => true,
-      'flash' => ['type' => 'danger', 'msg' => ($messages['error']['email_in_use'] ?? 'Ja existeix un compte amb aquest correu.')],
+      'flash' => ['type' => 'danger', 'msg' => ($messages['error']['email_in_use'] ?? 'Email ja registrat.')],
     ];
     ks_set_login_modal_cookie($_SESSION['login_modal']);
     $throttle_fail();
     redirect_to('index.php', $withReturn(['modal'=>'login','error'=>'email_in_use']));
   }
 
-  @error_log('Error registre: ' . $e->getMessage());
+  error_log('[register] Error: ' . $e->getMessage());
   $_SESSION['login_modal'] = [
     'open'  => true,
-    'flash' => ['type' => 'danger', 'msg' => ($messages['error']['db_error'] ?? 'Error de base de dades.')],
+    'flash' => ['type' => 'danger', 'msg' => ($messages['error']['db_error'] ?? 'Error de BD.')],
   ];
   ks_set_login_modal_cookie($_SESSION['login_modal']);
   $throttle_fail();

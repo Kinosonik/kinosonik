@@ -38,6 +38,7 @@ $VER = (string)($GLOBALS['versio_web'] ?? '0');
     <meta property="og:url" content="<?= h(absolute_url('')) ?>">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:site" content="@kinosonik">
+    <meta name="csrf-token" content="<?= h($_SESSION['csrf'] ?? '') ?>">
 
     <!-- Icons -->
     <link rel="icon" href="<?= h(asset('img/favicon/favicon.ico')) ?>">

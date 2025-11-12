@@ -109,12 +109,12 @@ return [
 
   'index.demo.titol'        => 'Prova la IA del teu rider, gratuïtament.',
   'index.demo.subtitol'     => 'Arrossega o selecciona el rider i obtén una valoració immediata',
-  'index.demo.label_upload' => 'Puja el teu rider en PDF (màx. 20 MB)',
+  'index.demo.label_upload' => 'Puja el teu rider en PDF (màx. 10 MB)',
   'index.demo.btn_analitza' => 'Analitza ara',
   'index.demo.resultat'     => "Resultat de l'anàlisi",
   'index.demo.analitzant'   => 'Analitzant el teu rider...',
   'index.demo.error'        => "Error en l'anàlisi",
-  'index.demo.version'      => "Versió heurística local.<br />Dóna't d'alta i prova la versió completa.",
+  'index.demo.version'      => "Versió heurística local. Dóna't d'alta i prova la versió completa.",
   'index.demo.btn_comenca'  => "Dóna't d'alta",
   'index.demo.tancar'  => 'Tancar',
   'index.demo.ratelimit'     => 'Has fet massa proves. Torna-ho a intentar d’aquí uns minuts.',
@@ -359,6 +359,15 @@ return [
   'register.policy'            => "política de privacitat",
   'register.must_accept_policy'=> "Has d'acceptar la política de privacitat.",
   'register.submit'            => "Registrar-se",
+  'register.toggle_password' => 'Mostra/amaga contrasenya',
+
+  'register.show_password' => 'Mostra contrasenya',
+  'register.hide_password' => 'Amaga contrasenya',
+  'register.passwords_match' => 'Les contrasenyes coincideixen',
+  'register.legal_note' => 'Les teves dades seran tractades segons la nostra política de privacitat.',
+  'required' => 'Obligatori',
+  'disposable_email' => 'No es permeten correus temporals.',
+  'ip_rate_limit' => 'Massa registres des d\'aquesta IP.',
 
     // Genèrics
   'close'   => "Tancar",

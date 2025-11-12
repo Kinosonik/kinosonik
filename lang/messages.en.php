@@ -17,6 +17,10 @@ return [
     'invalid_phone'       => "Invalid phone number. Use international format, e.g. +34656765467.",
     'policy_required'     => "You must accept the privacy policy to register.",
     'email_in_use'        => "An account with that email address already exists.",
+    'token_expired' => 'The link has expired. Please request a new one from your profile.',
+    'verify_failed' => 'System error. Contact support if the problem persists.',
+    'verify_rate_limit' => 'Too many verification attempts. Please wait a few minutes.',
+
 
     // Recovery / verification
     'token_invalid'       => "The link is invalid or has already been used.",
@@ -99,5 +103,8 @@ return [
 
     'role_tecnic_on'   => 'Technician role enabled successfully. You can now upload and manage riders.',
     'role_tecnic_off'  => 'Technician role disabled and riders deleted successfully.',
+
+    'verify_ok' => 'Email successfully verified! Welcome to Kinosonik Riders.',
+    'email_verified' => 'Account successfully activated. You can now use all features.',
   ],
 ];

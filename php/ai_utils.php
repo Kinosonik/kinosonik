@@ -2,6 +2,22 @@
 // php/ai_utils.php — Helpers IA compartits
 declare(strict_types=1);
 
+if (!function_exists('detect_lang_heuristic')) {
+  /**
+   * Detecta l'idioma dominant del text d'un rider.
+   * @param string $text Contingut del rider en text pla.
+   * @return string Codi ISO d'idioma ('ca', 'es', 'en', 'fr', ...)
+   */
+  function detect_lang_heuristic(string $text): string {
+    $t = strtolower(mb_substr($text, 0, 1000, 'UTF-8'));
+    if (preg_match('/\b(el|la|los|una|un|de|que|para|por|con)\b/u', $t)) return 'es';
+    if (preg_match('/\b(the|and|of|for|with|from)\b/u', $t)) return 'en';
+    if (preg_match('/\b(el|la|els|les|per|amb|dels|una)\b/u', $t)) return 'ca';
+    if (preg_match('/\b(le|la|les|des|pour|avec)\b/u', $t)) return 'fr';
+    return 'und'; // undefined
+  }
+}
+
 /**
  * Hi ha job actiu (queued/running) per a un rider?
  */

@@ -72,3 +72,16 @@ function t(string $key, array $vars = []): string {
 function __(string $key, array $vars = []): string {
   return t($key, $vars);
 }
+/* ---------------------------------------------------------
+ * Helper per a sortides JSON segures dins <script>
+ * Evita XSS en valors de traducció o text injectat a JS
+ * --------------------------------------------------------- */
+if (!function_exists('js_safe')) {
+  /**
+   * Retorna una cadena JSON segura per a ús dins JavaScript.
+   * Ex: <script> const txt = <?= js_safe(__('index.demo.error')) ?>;</script>
+   */
+  function js_safe($value): string {
+    return json_encode($value, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+  }
+}
