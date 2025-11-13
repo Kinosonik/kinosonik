@@ -130,4 +130,16 @@ if (defined('KS_SECRET_EXPORT_ENV') && KS_SECRET_EXPORT_ENV === true) {
   ks_secret_export_to_env($__secrets);
 }
 
+// 🔧 Export universal — fins i tot si FPM buida $_ENV o bloqueja putenv()
+if (is_array($__secrets)) {
+    foreach ($__secrets as $k => $v) {
+        if (is_scalar($v)) {
+            $s = (string)$v;
+            $_SERVER[$k] = $s;  // FPM sempre el conserva
+            $_ENV[$k] = $s;
+            @putenv("$k=$s");
+        }
+    }
+}
+
 return $__secrets;

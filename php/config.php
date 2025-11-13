@@ -43,25 +43,20 @@ if (PHP_SAPI !== 'cli') {
   }
 }
 
-/* ---------- Secret local opcional ---------- */
-$__secret = __DIR__ . '/secret.php';
-$cfg = [];
-if (is_file($__secret)) {
-  $cfg = require $__secret;
-  if (is_array($cfg)) {
-    foreach ($cfg as $k => $v) {
-      if (!isset($_ENV[$k])) $_ENV[$k] = (string)$v;
-    }
-  }
-}
-/* Shim perquè getenv() i algun entorn sense $_ENV funcionin */
-if (!empty($cfg) && is_array($cfg)) {
+/* ---------- Secret local (únic i compartit) ---------- */
+/* Carrega la configuració sensible des del fitxer centralitzat,
+   amb export automàtic de variables al medi ambient (getenv/$_ENV). 
+   Això evita inconsistències entre /html i /html-dev. */
+define('KS_SECRET_EXPORT_ENV', true);
+require_once '/var/config/secure/riders/secret.local.php';
+if (is_array($cfg ?? null)) {
   foreach ($cfg as $k => $v) {
-    $v = (string)$v;
-    putenv($k.'='.$v);
-    $_SERVER[$k] = $v;
+    $_ENV[$k] = (string)$v;
+    $_SERVER[$k] = (string)$v;
+    @putenv("$k=$v");
   }
 }
+
 
 /* ---------- Pàgina 500 i directori de logs ---------- */
 if (!defined('KS_ERROR_PAGE')) {

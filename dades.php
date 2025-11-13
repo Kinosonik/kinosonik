@@ -256,8 +256,7 @@ $confirmPattern = '^' . preg_quote($confirmWord, '/') . '$';
           <!-- Ocultem el control per a 'sala' (excepte si l’admin edita) -->
           <input type="hidden" name="publica_telefon" value="<?= (int)($usuari['Publica_Telefon'] ?? 0) ?>">
           <?php endif; ?>
-            
-          <?php if ($canToggleTechRole): ?>
+          
           <!-- Rol addicional: Tècnic (només productors o admin) -->
           <?php $potVeureSwitchTecnic = (ks_is_admin() || ks_is_productor()); ?>
           <?php if ($potVeureSwitchTecnic): ?>
@@ -279,6 +278,7 @@ $confirmPattern = '^' . preg_quote($confirmWord, '/') . '$';
               </form>
             </div>
           </div>
+          <?php endif; ?>
         </div>
         <!-- Eliminar compte -->
         <div class="card-footer bg-kinosonik">
@@ -358,8 +358,6 @@ $confirmPattern = '^' . preg_quote($confirmWord, '/') . '$';
       });
     })();
   </script>
-  <?php endif; ?>
-<?php endif; ?>
 
 <!-- Modal confirmació eliminació -->
 <div class="modal fade" id="modalDeleteAccount" tabindex="-1" aria-hidden="true">

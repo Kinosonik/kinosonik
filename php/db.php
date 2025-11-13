@@ -1,24 +1,18 @@
 <?php
 declare(strict_types=1);
 
-// No facis new PDO aquí a nivell de fitxer.
-// Centralitza la connexió dins de db() i reutilitza-la via static.
-
 if (!function_exists('db')) {
   function db(): PDO {
     static $pdo = null;
-    if ($pdo instanceof PDO) {
-      return $pdo;
-    }
+    if ($pdo instanceof PDO) return $pdo;
 
-    // Carrega config (secret.php ja omple $_ENV)
-    require_once __DIR__ . '/config.php';
+    $SECRETS = require '/var/config/secure/riders/secret.local.php';
 
-    $DB_HOST = $_ENV['DB_HOST'] ?? 'localhost';
-    $DB_NAME = $_ENV['DB_NAME'] ?? '';
-    $DB_USER = $_ENV['DB_USER'] ?? '';
-    $DB_PASS = $_ENV['DB_PASS'] ?? '';
-    $charset = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
+    $DB_HOST = $SECRETS['DB_HOST'] ?? 'localhost';
+    $DB_NAME = $SECRETS['DB_NAME'] ?? '';
+    $DB_USER = $SECRETS['DB_USER'] ?? '';
+    $DB_PASS = $SECRETS['DB_PASS'] ?? '';
+    $charset = $SECRETS['DB_CHARSET'] ?? 'utf8mb4';
 
     $dsn = "mysql:host={$DB_HOST};dbname={$DB_NAME};charset={$charset}";
     $opt = [
@@ -28,9 +22,16 @@ if (!function_exists('db')) {
     ];
 
     $pdo = new PDO($dsn, $DB_USER, $DB_PASS, $opt);
-    // Sessió de connexió coherent
     $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
     $pdo->exec("SET time_zone = '+00:00'");
+
+    // 🔍 Traça de depuració
+    if (function_exists('ks_log')) {
+      ks_log('[debug-db] Using DB: ' . ($DB_NAME ?: '(undefined)'));
+    } else {
+      error_log('[debug-db] Using DB: ' . ($DB_NAME ?: '(undefined)'));
+    }
+
     return $pdo;
   }
 }
